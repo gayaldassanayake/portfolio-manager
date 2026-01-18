@@ -1,6 +1,6 @@
 """Unit trust price model."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, UniqueConstraint
@@ -27,6 +27,8 @@ class Price(Base):
     )
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
 
     unit_trust: Mapped['UnitTrust'] = relationship(back_populates='prices')

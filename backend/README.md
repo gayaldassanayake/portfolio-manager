@@ -35,6 +35,28 @@ uv run uvicorn main:app --reload
 uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
+## Testing
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=app --cov-report=term-missing
+
+# Generate HTML coverage report
+uv run pytest --cov=app --cov-report=html
+# Open htmlcov/index.html in browser
+
+# Run specific test file
+uv run pytest tests/integration/test_unit_trusts.py
+
+# Run specific test
+uv run pytest tests/integration/test_unit_trusts.py::TestUnitTrustAPI::test_create_unit_trust_success
+```
+
+**Test Coverage:** 96% (430 statements, 18 missed)
+
 ## API Documentation
 
 Interactive API documentation is available at `/docs` (Swagger UI) and `/redoc` (ReDoc).

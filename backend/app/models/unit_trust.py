@@ -1,6 +1,6 @@
 """Unit trust model."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, String
@@ -25,7 +25,9 @@ class UnitTrust(Base):
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     symbol: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
 
     prices: Mapped[list['Price']] = relationship(
         back_populates='unit_trust', cascade='all, delete-orphan'
