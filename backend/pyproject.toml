@@ -1,7 +1,35 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Portfolio management system for unit trusts"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "fastapi>=0.128.0",
+    "uvicorn[standard]>=0.40.0",
+    "sqlalchemy>=2.0.45",
+    "aiosqlite>=0.20.0",
+    "pydantic>=2.12.0",
+    "numpy>=2.4.1",
+    "pandas>=2.3.3",
+    "greenlet>=3.3.0",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.14.13"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ruff.lint]
+# "I" (isort), "D" (pydocstyle), "E" (pycodestyle)
+extend-select = ["I", "D", "E"]
+ignore = [
+    "D203", # 1 blank line required before class docstring (conflicts with D211)
+    "D213", # Multi-line docstring summary should start at the second line (conflicts with D212)
+]
