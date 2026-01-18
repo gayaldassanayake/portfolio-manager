@@ -35,6 +35,20 @@ uv run uvicorn main:app --reload
 uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
+## Database Seeding
+
+Generate sample data for development and testing:
+
+```bash
+# Seed database with sample unit trusts, prices, and transactions
+uv run seed-db
+```
+
+This will create:
+- 4 sample unit trusts
+- 365 days of price history for each fund
+- 12 sample transactions per fund
+
 ## Testing
 
 ```bash

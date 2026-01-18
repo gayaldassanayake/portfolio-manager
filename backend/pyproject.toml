@@ -24,6 +24,15 @@ dev = [
     "pytest-cov>=7.0.0",
 ]
 
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+include = ["app*", "scripts*"]
+
+[project.scripts]
+seed-db = "scripts.seed_db:main"
+
 [tool.ruff]
 line-length = 100
 
