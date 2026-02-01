@@ -1,0 +1,183 @@
+/* ============================================
+   Input Component - Swiss Finance Style
+   ============================================ */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Label */
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* Input wrapper for icons */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Base input styles */
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  transition: 
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-surface-border-hover);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: var(--color-bg-tertiary);
+  box-shadow: 0 0 0 3px var(--color-accent-dim);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error state */
+.hasError .input {
+  border-color: var(--color-negative);
+}
+
+.hasError .input:focus {
+  box-shadow: 0 0 0 3px var(--color-negative-dim);
+}
+
+/* Icon positioning */
+.leftIcon,
+.rightIcon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.leftIcon {
+  left: var(--space-3);
+}
+
+.rightIcon {
+  right: var(--space-3);
+}
+
+.leftIcon svg,
+.rightIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hasLeftIcon {
+  padding-left: calc(var(--space-3) + 18px + var(--space-2));
+}
+
+.hasRightIcon {
+  padding-right: calc(var(--space-3) + 18px + var(--space-2));
+}
+
+/* Select specific styles */
+.selectWrapper {
+  position: relative;
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: calc(var(--space-4) + 20px);
+}
+
+.selectIcon {
+  position: absolute;
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+/* Textarea specific styles */
+.textarea {
+  height: auto;
+  min-height: 100px;
+  padding: var(--space-3) var(--space-4);
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Hint & Error text */
+.hint,
+.error {
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+.hint {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-negative);
+}
+
+/* Number input - monospace for financial data */
+.input[type="number"] {
+  font-family: var(--font-mono);
+}
+
+/* Remove number input spinners for cleaner look */
+.input[type="number"]::-webkit-inner-spin-button,
+.input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Date input - ensure consistent styling */
+.input[type="date"] {
+  font-family: var(--font-mono);
+}
+
+.input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+}

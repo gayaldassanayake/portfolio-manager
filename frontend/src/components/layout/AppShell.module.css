@@ -1,0 +1,48 @@
+/* ============================================
+   AppShell Component - Swiss Finance Style
+   ============================================ */
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  padding: var(--space-6);
+  max-width: var(--content-max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .content {
+    padding: var(--space-4);
+  }
+}
+
+/* Background subtle grid pattern for depth */
+.main::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: 
+    linear-gradient(var(--color-text-muted) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-text-muted) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: -1;
+}

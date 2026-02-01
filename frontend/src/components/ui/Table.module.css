@@ -1,0 +1,183 @@
+/* ============================================
+   Table Component - Swiss Finance Style
+   ============================================ */
+
+.wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-surface-border);
+  background: var(--color-surface-solid);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+/* Header */
+.header {
+  background: var(--color-bg-secondary);
+}
+
+.head {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-surface-border);
+  white-space: nowrap;
+}
+
+.headContent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Sortable headers */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.sortable:hover {
+  color: var(--color-text-primary);
+}
+
+.sorted {
+  color: var(--color-accent);
+}
+
+.sortIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+}
+
+.sortable:hover .sortIcon,
+.sorted .sortIcon {
+  opacity: 1;
+}
+
+/* Body */
+.body {
+  background: transparent;
+}
+
+/* Rows */
+.row {
+  border-bottom: 1px solid var(--color-surface-border);
+  transition: background-color var(--transition-fast);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.hoverable:hover {
+  background: var(--color-bg-hover);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+/* Cells */
+.cell {
+  padding: var(--space-4);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Alignment */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+/* Empty state */
+.empty {
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: block;
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.emptyIcon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.emptyMessage {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+/* Skeleton loading */
+.skeleton {
+  height: 20px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-tertiary) 0%,
+    var(--color-bg-hover) 50%,
+    var(--color-bg-tertiary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Alternating row width for skeleton */
+.row:nth-child(odd) .skeleton {
+  width: 80%;
+}
+
+.row:nth-child(even) .skeleton {
+  width: 60%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .head,
+  .cell {
+    padding: var(--space-3);
+  }
+  
+  .head:first-child,
+  .cell:first-child {
+    padding-left: var(--space-4);
+  }
+  
+  .head:last-child,
+  .cell:last-child {
+    padding-right: var(--space-4);
+  }
+}

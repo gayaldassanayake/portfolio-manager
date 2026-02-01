@@ -1,0 +1,112 @@
+/* ============================================
+   Transactions Page - Swiss Finance Style
+   ============================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  width: 280px;
+}
+
+.filterSelect {
+  width: 160px;
+}
+
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+  }
+  
+  .searchInput,
+  .filterSelect {
+    width: 100%;
+  }
+}
+
+/* Table cells */
+.fundCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fundSymbol {
+  font-family: var(--font-mono);
+  font-weight: var(--font-semibold);
+  color: var(--color-accent);
+}
+
+.fundName {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: 
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.deleteButton:hover {
+  color: var(--color-negative);
+  background: var(--color-negative-dim);
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 480px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.totalPreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.totalValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}

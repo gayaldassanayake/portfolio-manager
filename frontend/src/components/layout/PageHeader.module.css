@@ -1,0 +1,49 @@
+/* ============================================
+   PageHeader Component - Swiss Finance Style
+   ============================================ */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: var(--space-2) 0 0 0;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.action {
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .action {
+    width: 100%;
+  }
+}

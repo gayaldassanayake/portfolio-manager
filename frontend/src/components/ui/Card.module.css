@@ -1,0 +1,121 @@
+/* ============================================
+   Card Component - Swiss Finance Style
+   ============================================ */
+
+.card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  transition: 
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-fast);
+}
+
+/* Variants */
+.default {
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-surface-border);
+}
+
+.elevated {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-md);
+}
+
+.outlined {
+  background: transparent;
+  border: 1px solid var(--color-surface-border);
+}
+
+.ghost {
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+/* Padding sizes */
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: var(--space-3);
+}
+
+.padding-md {
+  padding: var(--space-5);
+}
+
+.padding-lg {
+  padding: var(--space-6);
+}
+
+/* Interactive states */
+.hoverable:hover {
+  border-color: var(--color-surface-border-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.clickable:active {
+  transform: translateY(0);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.headerContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerAction {
+  flex-shrink: 0;
+}
+
+/* Title */
+.title {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* Description */
+.description {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: var(--space-1) 0 0 0;
+  line-height: 1.5;
+}
+
+/* Content */
+.content {
+  /* Content inherits card padding, no extra margins */
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-surface-border);
+}
