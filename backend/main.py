@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.portfolio import router as portfolio_router
 from app.api.prices import router as prices_router
@@ -34,6 +35,14 @@ app = FastAPI(
     description='API for managing unit trust portfolios and tracking performance',
     version='0.1.0',
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 app.include_router(unit_trusts_router)

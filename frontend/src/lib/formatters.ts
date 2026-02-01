@@ -19,7 +19,7 @@ export function formatCurrency(
   if (value === null || value === undefined) return '—';
   
   const {
-    currency = 'MYR',
+    currency = 'USD',
     minimumFractionDigits = 2,
     maximumFractionDigits = 2,
     compact = false,
