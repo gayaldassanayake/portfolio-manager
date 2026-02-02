@@ -47,13 +47,15 @@ export interface UnitTrustUpdate {
 // Transaction types
 export type TransactionType = 'buy' | 'sell';
 
-// Backend transaction response (flattened format)
+// Backend transaction response (flattened format with transaction_type and notes)
 export interface Transaction {
   id: number;
   unit_trust_id: number;
+  transaction_type: TransactionType;
   units: number;
   price_per_unit: number;
   transaction_date: string;
+  notes: string | null;
   created_at: string;
   unit_trust_name: string;
   unit_trust_symbol: string;
@@ -63,12 +65,12 @@ export interface Transaction {
 export interface TransactionWithFund {
   id: number;
   unit_trust_id: number;
+  transaction_type: TransactionType;
   units: number;
   price_per_unit: number;
   transaction_date: string;
+  notes: string | null;
   created_at: string;
-  notes?: string | null;
-  transaction_type: TransactionType;
   unit_trust: {
     id: number;
     name: string;
@@ -80,7 +82,6 @@ export interface TransactionCreate {
   unit_trust_id: number;
   transaction_type: TransactionType;
   units: number;
-  price_per_unit: number;
   transaction_date: string;
   notes?: string;
 }

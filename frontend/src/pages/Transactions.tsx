@@ -5,6 +5,7 @@ import { PageHeader } from '../components/layout';
 import {
   Card,
   Button,
+  Badge,
   Input,
   Select,
   Table,
@@ -32,6 +33,7 @@ export function Transactions() {
   
   // Filters
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
   const [fundFilter, setFundFilter] = useState<string>('');
 
   // Modal state
@@ -68,6 +70,11 @@ export function Transactions() {
         if (!matchesSearch) return false;
       }
       
+      // Type filter
+      if (typeFilter && tx.transaction_type !== typeFilter) {
+        return false;
+      }
+      
       // Fund filter
       if (fundFilter && tx.unit_trust_id !== Number(fundFilter)) {
         return false;
@@ -75,7 +82,7 @@ export function Transactions() {
       
       return true;
     });
-  }, [transactions, search, fundFilter]);
+  }, [transactions, search, typeFilter, fundFilter]);
 
   const fundOptions = useMemo(() => {
     if (!unitTrusts) return [];
@@ -120,7 +127,17 @@ export function Transactions() {
           fullWidth={false}
           className={styles.searchInput}
         />
-{/* Type filter hidden - backend doesn't return transaction_type */}
+        <Select
+          options={[
+            { value: '', label: 'All Types' },
+            { value: 'buy', label: 'Buy' },
+            { value: 'sell', label: 'Sell' },
+          ]}
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          fullWidth={false}
+          className={styles.filterSelect}
+        />
         <Select
           options={[{ value: '', label: 'All Funds' }, ...fundOptions]}
           value={fundFilter}
@@ -141,6 +158,7 @@ export function Transactions() {
             <TableHeader>
               <TableRow hoverable={false}>
                 <TableHead>Date</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Fund</TableHead>
                 <TableHead align="right">Units</TableHead>
                 <TableHead align="right">Price</TableHead>
@@ -153,8 +171,8 @@ export function Transactions() {
                 <TableSkeleton rows={5} columns={7} />
               ) : filteredTransactions.length === 0 ? (
                 <TableEmpty
-                  colSpan={6}
-                  message={search || fundFilter ? "No transactions match your filters" : "No transactions yet"}
+                  colSpan={7}
+                  message={search || typeFilter || fundFilter ? "No transactions match your filters" : "No transactions yet"}
                   icon={
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
                       <path d="M8 14H32M8 14L12 10M8 14L12 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -167,6 +185,11 @@ export function Transactions() {
                   <TableRow key={tx.id}>
                     <TableCell mono>
                       {formatDate(tx.transaction_date)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={tx.transaction_type === 'buy' ? 'positive' : 'negative'}>
+                        {tx.transaction_type === 'buy' ? 'Buy' : 'Sell'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className={styles.fundCell}>
@@ -184,15 +207,25 @@ export function Transactions() {
                       {formatCurrency(tx.units * tx.price_per_unit)}
                     </TableCell>
                     <TableCell align="right">
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => setDeleteId(tx.id)}
-                        aria-label="Delete transaction"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M3 4H13M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M12 4V13C12 13.5523 11.5523 14 11 14H5C4.44772 14 4 13.5523 4 13V4H12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        </svg>
-                      </button>
+                      <div className={styles.actionCell}>
+                        {tx.notes && (
+                          <span className={styles.notesIcon} title={tx.notes}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path d="M3 3H13V13H3V3Z" stroke="currentColor" strokeWidth="1.5" />
+                              <path d="M5 6H11M5 8H11M5 10H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            </svg>
+                          </span>
+                        )}
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => setDeleteId(tx.id)}
+                          aria-label="Delete transaction"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 4H13M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M12 4V13C12 13.5523 11.5523 14 11 14H5C4.44772 14 4 13.5523 4 13V4H12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -234,7 +267,6 @@ function AddTransactionModal({
     unit_trust_id: 0,
     transaction_type: 'buy',
     units: 0,
-    price_per_unit: 0,
     transaction_date: formatDateForInput(new Date()),
     notes: '',
   });
@@ -249,9 +281,6 @@ function AddTransactionModal({
     }
     if (formData.units <= 0) {
       newErrors.units = 'Units must be greater than 0';
-    }
-    if (formData.price_per_unit <= 0) {
-      newErrors.price_per_unit = 'Price must be greater than 0';
     }
     if (!formData.transaction_date) {
       newErrors.transaction_date = 'Please select a date';
@@ -274,7 +303,6 @@ function AddTransactionModal({
         unit_trust_id: 0,
         transaction_type: 'buy',
         units: 0,
-        price_per_unit: 0,
         transaction_date: formatDateForInput(new Date()),
         notes: '',
       });
@@ -328,23 +356,13 @@ function AddTransactionModal({
           />
           
           <Input
-            label="Price per Unit"
-            type="number"
-            step="0.0001"
-            min="0"
-            value={formData.price_per_unit || ''}
-            onChange={(e) => setFormData({ ...formData, price_per_unit: Number(e.target.value) })}
-            error={errors.price_per_unit}
+            label="Transaction Date"
+            type="date"
+            value={formData.transaction_date}
+            onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
+            error={errors.transaction_date}
           />
         </div>
-        
-        <Input
-          label="Transaction Date"
-          type="date"
-          value={formData.transaction_date}
-          onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
-          error={errors.transaction_date}
-        />
         
         <Input
           label="Notes (optional)"
@@ -353,14 +371,9 @@ function AddTransactionModal({
           placeholder="Add any notes..."
         />
 
-        {formData.units > 0 && formData.price_per_unit > 0 && (
-          <div className={styles.totalPreview}>
-            <span>Total:</span>
-            <span className={styles.totalValue}>
-              {formatCurrency(formData.units * formData.price_per_unit)}
-            </span>
-          </div>
-        )}
+        <p className={styles.priceNote}>
+          Price will be automatically set based on the fund's price on the selected date.
+        </p>
 
         <ModalFooter>
           <Button variant="ghost" type="button" onClick={onClose}>

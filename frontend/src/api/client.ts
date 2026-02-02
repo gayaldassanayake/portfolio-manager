@@ -153,13 +153,12 @@ export const api = {
       return data.map((tx) => ({
         id: tx.id,
         unit_trust_id: tx.unit_trust_id,
+        transaction_type: tx.transaction_type,
         units: tx.units,
         price_per_unit: tx.price_per_unit,
         transaction_date: tx.transaction_date,
+        notes: tx.notes,
         created_at: tx.created_at,
-        notes: null,
-        // Backend doesn't return transaction_type, we infer from context or default to 'buy'
-        transaction_type: 'buy' as const,
         unit_trust: {
           id: tx.unit_trust_id,
           name: tx.unit_trust_name,
