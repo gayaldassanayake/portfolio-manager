@@ -37,14 +37,13 @@ class TestUnitTrustSchemas:
 
     def test_unit_trust_response_from_dict(self):
         """Test unit trust response model construction."""
-        data = {
-            'id': 1,
-            'name': 'Test Fund',
-            'symbol': 'TEST',
-            'description': 'Test',
-            'created_at': datetime.now(timezone.utc),
-        }
-        schema = UnitTrustResponse(**data)
+        schema = UnitTrustResponse(
+            id=1,
+            name='Test Fund',
+            symbol='TEST',
+            description='Test',
+            created_at=datetime.now(timezone.utc),
+        )
         assert schema.id == 1
         assert schema.name == 'Test Fund'
 
@@ -54,36 +53,33 @@ class TestPriceSchemas:
 
     def test_price_create_valid(self):
         """Test valid price creation data."""
-        data = {
-            'unit_trust_id': 1,
-            'date': datetime(2026, 1, 15, tzinfo=timezone.utc),
-            'price': 100.50,
-        }
-        schema = PriceCreate(**data)
+        schema = PriceCreate(
+            unit_trust_id=1,
+            date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            price=100.50,
+        )
         assert schema.unit_trust_id == 1
         assert schema.price == 100.50
 
     def test_price_create_negative_price(self):
         """Test price creation with negative price (should be allowed by Pydantic)."""
         # Note: Business logic validation should happen in the API layer
-        data = {
-            'unit_trust_id': 1,
-            'date': datetime.now(timezone.utc),
-            'price': -10.0,
-        }
-        schema = PriceCreate(**data)
+        schema = PriceCreate(
+            unit_trust_id=1,
+            date=datetime.now(timezone.utc),
+            price=-10.0,
+        )
         assert schema.price == -10.0
 
     def test_price_response_from_dict(self):
         """Test price response model construction."""
-        data = {
-            'id': 1,
-            'unit_trust_id': 1,
-            'date': datetime(2026, 1, 15, tzinfo=timezone.utc),
-            'price': 100.50,
-            'created_at': datetime.now(timezone.utc),
-        }
-        schema = PriceResponse(**data)
+        schema = PriceResponse(
+            id=1,
+            unit_trust_id=1,
+            date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            price=100.50,
+            created_at=datetime.now(timezone.utc),
+        )
         assert schema.id == 1
         assert schema.price == 100.50
 
@@ -93,12 +89,11 @@ class TestTransactionSchemas:
 
     def test_transaction_create_valid(self):
         """Test valid transaction creation data."""
-        data = {
-            'unit_trust_id': 1,
-            'units': 10.5,
-            'transaction_date': datetime(2026, 1, 15, tzinfo=timezone.utc),
-        }
-        schema = TransactionCreate(**data)
+        schema = TransactionCreate(
+            unit_trust_id=1,
+            units=10.5,
+            transaction_date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+        )
         assert schema.unit_trust_id == 1
         assert schema.units == 10.5
 
@@ -108,29 +103,31 @@ class TestTransactionSchemas:
             TransactionCreate(unit_trust_id=1)  # ty:ignore[missing-argument]
 
     def test_transaction_create_zero_units(self):
-        """Test transaction creation with zero units (should be allowed)."""
-        data = {
-            'unit_trust_id': 1,
-            'units': 0.0,
-            'transaction_date': datetime.now(timezone.utc),
-        }
-        schema = TransactionCreate(**data)
-        assert schema.units == 0.0
+        """Test transaction creation with zero units (should fail validation)."""
+        with pytest.raises(ValueError):
+            TransactionCreate(
+                unit_trust_id=1,
+                units=0.0,
+                transaction_date=datetime.now(timezone.utc),
+            )
 
     def test_transaction_response_from_dict(self):
         """Test transaction response model construction."""
-        data = {
-            'id': 1,
-            'unit_trust_id': 1,
-            'units': 10.5,
-            'price_per_unit': 100.0,
-            'transaction_date': datetime(2026, 1, 15, tzinfo=timezone.utc),
-            'created_at': datetime.now(timezone.utc),
-        }
-        schema = TransactionResponse(**data)
+        schema = TransactionResponse(
+            id=1,
+            unit_trust_id=1,
+            transaction_type='buy',
+            units=10.5,
+            price_per_unit=100.0,
+            transaction_date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            notes='Test note',
+            created_at=datetime.now(timezone.utc),
+        )
         assert schema.id == 1
         assert schema.units == 10.5
         assert schema.price_per_unit == 100.0
+        assert schema.transaction_type == 'buy'
+        assert schema.notes == 'Test note'
 
 
 class TestPortfolioSchemas:
@@ -138,47 +135,46 @@ class TestPortfolioSchemas:
 
     def test_portfolio_summary_from_dict(self):
         """Test portfolio summary model construction."""
-        data = {
-            'total_invested': 1000.0,
-            'current_value': 1100.0,
-            'total_gain_loss': 100.0,
-            'roi_percentage': 10.0,
-            'total_units': 10,
-            'holding_count': 1,
-        }
-        schema = PortfolioSummary(**data)
+        schema = PortfolioSummary(
+            total_invested=1000.0,
+            current_value=1100.0,
+            total_gain_loss=100.0,
+            roi_percentage=10.0,
+            total_units=10,
+            holding_count=1,
+        )
         assert schema.total_invested == 1000.0
         assert schema.roi_percentage == 10.0
 
     def test_performance_metrics_from_dict(self):
         """Test performance metrics model construction."""
-        data = {
-            'daily_return': 0.01,
-            'volatility': 0.15,
-            'annualized_return': 0.12,
-            'max_drawdown': -0.05,
-            'sharpe_ratio': 1.5,
-        }
-        schema = PerformanceMetrics(**data)
+        schema = PerformanceMetrics(
+            daily_return=0.01,
+            volatility=0.15,
+            annualized_return=0.12,
+            max_drawdown=-0.05,
+            sharpe_ratio=1.5,
+        )
         assert schema.daily_return == 0.01
         assert schema.volatility == 0.15
         assert schema.sharpe_ratio == 1.5
 
     def test_performance_metrics_sharpe_ratio_none(self):
         """Test performance metrics with None Sharpe ratio."""
-        data = {
-            'daily_return': 0.0,
-            'volatility': 0.0,
-            'annualized_return': 0.0,
-            'max_drawdown': 0.0,
-            'sharpe_ratio': None,
-        }
-        schema = PerformanceMetrics(**data)
+        schema = PerformanceMetrics(
+            daily_return=0.0,
+            volatility=0.0,
+            annualized_return=0.0,
+            max_drawdown=0.0,
+            sharpe_ratio=None,
+        )
         assert schema.sharpe_ratio is None
 
     def test_portfolio_history_from_dict(self):
         """Test portfolio history model construction."""
-        data = {'date': datetime(2026, 1, 15, tzinfo=timezone.utc), 'value': 1000.0}
-        schema = PortfolioHistory(**data)
+        schema = PortfolioHistory(
+            date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            value=1000.0,
+        )
         assert schema.value == 1000.0
         assert isinstance(schema.date, datetime)

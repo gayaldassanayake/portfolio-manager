@@ -110,6 +110,38 @@ class TestPortfolioAPI:
         assert data['total_gain_loss'] == -200.0
         assert data['roi_percentage'] == -20.0
 
+    async def test_portfolio_summary_with_buy_and_sell(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Test portfolio summary with buy and sell transactions."""
+        ut = make_unit_trust()
+        current_price = make_price(
+            unit_trust_id=1, date=datetime(2026, 1, 15, tzinfo=timezone.utc), price=120.0
+        )
+        # Buy 10 units at 100
+        txn_buy = make_transaction(
+            unit_trust_id=1, units=10.0, price_per_unit=100.0, transaction_type='buy'
+        )
+        # Sell 3 units at 110
+        txn_sell = make_transaction(
+            unit_trust_id=1, units=3.0, price_per_unit=110.0, transaction_type='sell'
+        )
+        test_db.add_all([ut, current_price, txn_buy, txn_sell])
+        await test_db.commit()
+
+        response = await client.get('/api/v1/portfolio/summary')
+        assert response.status_code == 200
+        data = response.json()
+        # Total invested = only buy transactions = 10 * 100 = 1000
+        assert data['total_invested'] == 1000.0
+        # Net units = 10 - 3 = 7
+        assert data['total_units'] == 7
+        # Current value = 7 * 120 = 840
+        assert data['current_value'] == 840.0
+        # Gain/loss = 840 - 1000 = -160
+        assert data['total_gain_loss'] == -160.0
+        assert data['holding_count'] == 1
+
     async def test_portfolio_performance_empty(self, client: AsyncClient):
         """Test portfolio performance with no data."""
         response = await client.get('/api/v1/portfolio/performance')

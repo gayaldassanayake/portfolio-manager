@@ -1,15 +1,24 @@
 """Transaction model."""
 
 from datetime import datetime, timezone
+from enum import Enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
 if TYPE_CHECKING:
     from app.models.unit_trust import UnitTrust
+
+
+class TransactionType(str, Enum):
+    """Enumeration for transaction types."""
+
+    BUY = 'buy'
+    SELL = 'sell'
 
 
 class Transaction(Base):
@@ -24,9 +33,16 @@ class Transaction(Base):
     unit_trust_id: Mapped[int] = mapped_column(
         Integer, ForeignKey('unit_trusts.id'), nullable=False, index=True
     )
+    transaction_type: Mapped[str] = mapped_column(
+        SAEnum('buy', 'sell', name='transaction_type_enum'),
+        nullable=False,
+        default=TransactionType.BUY.value,
+        server_default='buy',
+    )
     units: Mapped[float] = mapped_column(Float, nullable=False)
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False)
     transaction_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
+    notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

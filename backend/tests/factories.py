@@ -52,6 +52,8 @@ def make_transaction(
     units: float = 10.0,
     price_per_unit: float = 100.0,
     transaction_date: datetime | None = None,
+    transaction_type: str = 'buy',
+    notes: str | None = None,
 ) -> Transaction:
     """Create a transaction instance for testing.
 
@@ -60,6 +62,8 @@ def make_transaction(
         units: Number of units.
         price_per_unit: Price per unit.
         transaction_date: Transaction date (defaults to now).
+        transaction_type: Transaction type ('buy' or 'sell').
+        notes: Optional transaction notes.
 
     Returns:
         Transaction: Test transaction instance.
@@ -69,9 +73,11 @@ def make_transaction(
         transaction_date = datetime.now(timezone.utc)
     return Transaction(
         unit_trust_id=unit_trust_id,
+        transaction_type=transaction_type,
         units=units,
         price_per_unit=price_per_unit,
         transaction_date=transaction_date,
+        notes=notes,
     )
 
 

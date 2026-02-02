@@ -35,6 +35,34 @@ class TestTransactionAPI:
         assert data['units'] == 10.5
         assert data['price_per_unit'] == 100.0  # Auto-filled from price
         assert data['unit_trust_id'] == ut.id
+        assert data['transaction_type'] == 'buy'  # Default
+
+    async def test_create_transaction_with_type_and_notes(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Test creating transaction with transaction_type and notes."""
+        ut = make_unit_trust(symbol='TEST')
+        test_date = datetime(2026, 1, 15, tzinfo=timezone.utc)
+        price = make_price(unit_trust_id=1, date=test_date, price=100.0)
+        test_db.add_all([ut, price])
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        response = await client.post(
+            '/api/v1/transactions',
+            json={
+                'unit_trust_id': ut.id,
+                'units': 5.0,
+                'transaction_date': test_date.isoformat(),
+                'transaction_type': 'sell',
+                'notes': 'Profit taking',
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data['units'] == 5.0
+        assert data['transaction_type'] == 'sell'
+        assert data['notes'] == 'Profit taking'
 
     async def test_create_transaction_unit_trust_not_found(self, client: AsyncClient):
         """Test creating transaction for non-existent unit trust fails."""
@@ -102,6 +130,30 @@ class TestTransactionAPI:
         data = response.json()
         assert len(data) == 1
         assert data[0]['unit_trust_id'] == ut1.id
+
+    async def test_list_transactions_filter_by_type(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Test filtering transactions by transaction_type."""
+        ut = make_unit_trust()
+        txn_buy = make_transaction(unit_trust_id=1, transaction_type='buy')
+        txn_sell = make_transaction(unit_trust_id=1, transaction_type='sell')
+        test_db.add_all([ut, txn_buy, txn_sell])
+        await test_db.commit()
+
+        # Filter by buy
+        response = await client.get('/api/v1/transactions?transaction_type=buy')
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]['transaction_type'] == 'buy'
+
+        # Filter by sell
+        response = await client.get('/api/v1/transactions?transaction_type=sell')
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]['transaction_type'] == 'sell'
 
     async def test_list_transactions_filter_date_range(
         self, client: AsyncClient, test_db: AsyncSession

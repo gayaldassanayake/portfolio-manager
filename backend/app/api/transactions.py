@@ -1,7 +1,7 @@
 """Transaction management API endpoints."""
 
 from datetime import datetime
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -68,9 +68,11 @@ async def create_transaction(transaction: TransactionCreate, db: AsyncSession = 
 
     db_transaction = Transaction(
         unit_trust_id=transaction.unit_trust_id,
+        transaction_type=transaction.transaction_type,
         units=transaction.units,
         price_per_unit=price.price,
         transaction_date=transaction.transaction_date,
+        notes=transaction.notes,
     )
     db.add(db_transaction)
     await db.commit()
@@ -81,6 +83,7 @@ async def create_transaction(transaction: TransactionCreate, db: AsyncSession = 
 @router.get('', response_model=list[TransactionWithUnitTrust])
 async def list_transactions(
     unit_trust_id: int | None = Query(None),
+    transaction_type: Literal['buy', 'sell'] | None = Query(None),
     start_date: datetime | None = Query(None),
     end_date: datetime | None = Query(None),
     db: AsyncSession = Depends(get_db),
@@ -89,6 +92,7 @@ async def list_transactions(
 
     Args:
         unit_trust_id: Filter by unit trust ID.
+        transaction_type: Filter by transaction type (buy or sell).
         start_date: Filter by start date.
         end_date: Filter by end date.
         db: Database session.
@@ -100,6 +104,8 @@ async def list_transactions(
     query = select(Transaction).options(selectinload(Transaction.unit_trust))
     if unit_trust_id:
         query = query.where(Transaction.unit_trust_id == unit_trust_id)
+    if transaction_type:
+        query = query.where(Transaction.transaction_type == transaction_type)
     if start_date:
         query = query.where(Transaction.transaction_date >= start_date)
     if end_date:
@@ -112,9 +118,11 @@ async def list_transactions(
         TransactionWithUnitTrust(
             id=t.id,
             unit_trust_id=t.unit_trust_id,
+            transaction_type=t.transaction_type,  # type: ignore[arg-type]
             units=t.units,
             price_per_unit=t.price_per_unit,
             transaction_date=t.transaction_date,
+            notes=t.notes,
             created_at=t.created_at,
             unit_trust_name=t.unit_trust.name,
             unit_trust_symbol=t.unit_trust.symbol,
@@ -150,9 +158,11 @@ async def get_transaction(transaction_id: int, db: AsyncSession = Depends(get_db
     return TransactionWithUnitTrust(
         id=transaction.id,
         unit_trust_id=transaction.unit_trust_id,
+        transaction_type=transaction.transaction_type,  # type: ignore[arg-type]
         units=transaction.units,
         price_per_unit=transaction.price_per_unit,
         transaction_date=transaction.transaction_date,
+        notes=transaction.notes,
         created_at=transaction.created_at,
         unit_trust_name=transaction.unit_trust.name,
         unit_trust_symbol=transaction.unit_trust.symbol,

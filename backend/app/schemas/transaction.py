@@ -1,8 +1,17 @@
 """Transaction-related Pydantic schemas."""
 
 from datetime import datetime
+from enum import Enum
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class TransactionTypeEnum(str, Enum):
+    """Enumeration for transaction types."""
+
+    BUY = 'buy'
+    SELL = 'sell'
 
 
 class TransactionBase(BaseModel):
@@ -10,16 +19,20 @@ class TransactionBase(BaseModel):
 
     Attributes:
         unit_trust_id: ID of the unit trust.
-        units: Number of units.
+        transaction_type: Type of transaction (buy or sell).
+        units: Number of units (always positive).
         price_per_unit: Price per unit.
         transaction_date: Transaction date.
+        notes: Optional notes for the transaction.
 
     """
 
     unit_trust_id: int
-    units: float
+    transaction_type: Literal['buy', 'sell'] = 'buy'
+    units: float = Field(..., gt=0, description='Number of units (must be positive)')
     price_per_unit: float
     transaction_date: datetime
+    notes: str | None = None
 
 
 class TransactionCreate(BaseModel):
@@ -27,14 +40,18 @@ class TransactionCreate(BaseModel):
 
     Attributes:
         unit_trust_id: ID of the unit trust.
-        units: Number of units.
+        transaction_type: Type of transaction (buy or sell).
+        units: Number of units (always positive).
         transaction_date: Transaction date.
+        notes: Optional notes for the transaction.
 
     """
 
     unit_trust_id: int
-    units: float
+    transaction_type: Literal['buy', 'sell'] = 'buy'
+    units: float = Field(..., gt=0, description='Number of units (must be positive)')
     transaction_date: datetime
+    notes: str | None = None
 
 
 class TransactionUpdate(BaseModel):
@@ -43,15 +60,19 @@ class TransactionUpdate(BaseModel):
     All fields are optional.
 
     Attributes:
+        transaction_type: Type of transaction (buy or sell).
         units: New number of units.
         price_per_unit: New price per unit.
         transaction_date: New transaction date.
+        notes: Updated notes.
 
     """
 
-    units: float | None = None
+    transaction_type: Literal['buy', 'sell'] | None = None
+    units: float | None = Field(None, gt=0, description='Number of units (must be positive)')
     price_per_unit: float | None = None
     transaction_date: datetime | None = None
+    notes: str | None = None
 
 
 class TransactionResponse(TransactionBase):

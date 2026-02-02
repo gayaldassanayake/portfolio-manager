@@ -3,7 +3,7 @@
 from typing import AsyncGenerator
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -173,14 +173,24 @@ async def get_unit_trust_with_stats(unit_trust_id: int, db: AsyncSession = Depen
     if not unit_trust:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Unit trust not found')
 
+    # Calculate net units (buy - sell)
+    net_units_expr = func.sum(
+        case(
+            (Transaction.transaction_type == 'buy', Transaction.units),
+            (Transaction.transaction_type == 'sell', -Transaction.units),
+            else_=0,
+        )
+    )
     total_units_result = await db.execute(
-        select(func.sum(Transaction.units)).where(Transaction.unit_trust_id == unit_trust_id)
+        select(net_units_expr).where(Transaction.unit_trust_id == unit_trust_id)
     )
     total_units = total_units_result.scalar() or 0.0
 
+    # Calculate average purchase price (only from buy transactions)
     avg_price_result = await db.execute(
         select(func.avg(Transaction.price_per_unit)).where(
-            Transaction.unit_trust_id == unit_trust_id
+            Transaction.unit_trust_id == unit_trust_id,
+            Transaction.transaction_type == 'buy',
         )
     )
     avg_price = avg_price_result.scalar() or 0.0

@@ -35,40 +35,44 @@ class PerformanceService:
                 current value, and ROI.
 
         """
-        result = await db.execute(
+        from sqlalchemy import case
+
+        # Calculate total invested (only buy transactions)
+        buy_result = await db.execute(
             select(
                 func.sum(Transaction.units * Transaction.price_per_unit).label('total_invested'),
-                func.sum(Transaction.units).label('total_units'),
-                func.count(func.distinct(Transaction.unit_trust_id)).label('holding_count'),
+            ).where(Transaction.transaction_type == 'buy')
+        )
+        buy_row = buy_result.first()
+        total_invested = float(buy_row[0]) if buy_row and buy_row[0] else 0.0
+
+        # Calculate net units per fund (buy - sell) and holding count
+        # Use CASE to add units for buy, subtract for sell
+        net_units_expr = func.sum(
+            case(
+                (Transaction.transaction_type == 'buy', Transaction.units),
+                (Transaction.transaction_type == 'sell', -Transaction.units),
+                else_=0,
             )
         )
-        summary_row = result.first()
-        if not summary_row:
-            from app.schemas import PortfolioSummary
 
-            return PortfolioSummary(
-                total_invested=0.0,
-                current_value=0.0,
-                total_gain_loss=0.0,
-                roi_percentage=0.0,
-                total_units=0,
-                holding_count=0,
-            )
+        holdings_result = await db.execute(
+            select(
+                Transaction.unit_trust_id,
+                net_units_expr.label('net_units'),
+            ).group_by(Transaction.unit_trust_id)
+        )
+        holdings = holdings_result.all()
 
-        total_invested = float(summary_row[0]) if summary_row[0] else 0.0
-        total_units = float(summary_row[1]) if summary_row[1] else 0.0
-        holding_count = int(summary_row[2]) if summary_row[2] else 0
+        # Filter to only positive holdings for counting
+        positive_holdings = [(uid, units) for uid, units in holdings if units and units > 0]
+        holding_count = len(positive_holdings)
+        total_units = sum(units for _, units in positive_holdings)
 
+        # Calculate current value based on net units and latest prices
         current_value = 0.0
-        if total_units > 0:
-            holdings_result = await db.execute(
-                select(
-                    Transaction.unit_trust_id,
-                    func.sum(Transaction.units).label('units'),
-                ).group_by(Transaction.unit_trust_id)
-            )
-            holdings = holdings_result.all()
-            for unit_trust_id, units in holdings:
+        for unit_trust_id, net_units in holdings:
+            if net_units and net_units > 0:
                 latest_price_result = await db.execute(
                     select(Price.price)
                     .where(Price.unit_trust_id == unit_trust_id)
@@ -77,7 +81,7 @@ class PerformanceService:
                 )
                 latest_price = latest_price_result.scalar_one_or_none()
                 if latest_price:
-                    current_value += units * latest_price
+                    current_value += net_units * latest_price
 
         total_gain_loss = current_value - total_invested
         roi_percentage = (total_gain_loss / total_invested * 100) if total_invested > 0 else 0.0
@@ -105,6 +109,8 @@ class PerformanceService:
             List of portfolio values by date.
 
         """
+        from sqlalchemy import case
+
         end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days)
 
@@ -121,12 +127,27 @@ class PerformanceService:
         if prices_df.empty:
             return []
 
-        holdings_result = await db.execute(
-            select(Transaction.unit_trust_id, func.sum(Transaction.units).label('units')).group_by(
-                Transaction.unit_trust_id
+        # Calculate net units per fund (buy - sell)
+        net_units_expr = func.sum(
+            case(
+                (Transaction.transaction_type == 'buy', Transaction.units),
+                (Transaction.transaction_type == 'sell', -Transaction.units),
+                else_=0,
             )
         )
-        holdings = {row.unit_trust_id: row.units for row in holdings_result}
+
+        holdings_result = await db.execute(
+            select(
+                Transaction.unit_trust_id,
+                net_units_expr.label('net_units'),
+            ).group_by(Transaction.unit_trust_id)
+        )
+        # Only include positive holdings
+        holdings = {
+            row.unit_trust_id: row.net_units
+            for row in holdings_result
+            if row.net_units and row.net_units > 0
+        }
 
         prices_pivot = prices_df.pivot(index='date', columns='unit_trust_id', values='price')
         portfolio_values = (prices_pivot * pd.Series(holdings)).fillna(0).sum(axis=1)
