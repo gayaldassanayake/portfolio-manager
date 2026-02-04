@@ -25,6 +25,8 @@ class UnitTrust(Base):
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     symbol: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
+    provider: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    provider_symbol: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

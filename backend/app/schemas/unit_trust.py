@@ -1,8 +1,12 @@
 """Unit trust-related Pydantic schemas."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
+
+# Supported price providers
+ProviderType = Literal['yahoo', 'cal']
 
 
 class UnitTrustBase(BaseModel):
@@ -12,12 +16,16 @@ class UnitTrustBase(BaseModel):
         name: Unit trust name.
         symbol: Unit trust symbol.
         description: Optional description.
+        provider: Price provider name ('yahoo' or 'cal').
+        provider_symbol: Symbol used by the provider (defaults to symbol if not set).
 
     """
 
     name: str
     symbol: str
     description: str | None = None
+    provider: ProviderType | None = None
+    provider_symbol: str | None = None
 
 
 class UnitTrustCreate(UnitTrustBase):
@@ -33,12 +41,16 @@ class UnitTrustUpdate(BaseModel):
         name: New name.
         symbol: New symbol.
         description: New description.
+        provider: New provider name ('yahoo' or 'cal').
+        provider_symbol: New provider symbol.
 
     """
 
     name: str | None = None
     symbol: str | None = None
     description: str | None = None
+    provider: ProviderType | None = None
+    provider_symbol: str | None = None
 
 
 class UnitTrustResponse(UnitTrustBase):

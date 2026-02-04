@@ -13,6 +13,7 @@ dependencies = [
     "numpy>=2.4.1",
     "pandas>=2.3.3",
     "greenlet>=3.3.0",
+    "yfinance>=0.2.50",
 ]
 
 [dependency-groups]
