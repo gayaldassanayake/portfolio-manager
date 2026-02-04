@@ -1,9 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { PageHeader } from '../components/layout';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
+import { ProviderBadge } from '../components/ui/ProviderBadge';
 import { StatCard } from '../components/features';
+import { UnitTrustFormModal } from '../components/features/UnitTrustFormModal';
+import { FetchPricesModal } from '../components/features/FetchPricesModal';
 import { PortfolioChart } from '../components/charts';
 import { useUnitTrustWithStats, usePrices, useTransactions } from '../api/hooks';
 import { formatCurrency, formatUnits, formatPercentage, formatDate } from '../lib/formatters';
@@ -16,6 +19,9 @@ export function FundDetails() {
   const { data: fund, isLoading: fundLoading } = useUnitTrustWithStats(fundId);
   const { data: prices, isLoading: pricesLoading } = usePrices(fundId);
   const { data: allTransactions } = useTransactions();
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showFetchModal, setShowFetchModal] = useState(false);
 
   // Filter transactions for this fund
   const fundTransactions = useMemo(() => {
@@ -68,11 +74,28 @@ export function FundDetails() {
         title={fund.symbol}
         description={fund.name}
         action={
-          <Link to="/transactions?action=add">
-            <Button>Add Transaction</Button>
-          </Link>
+          <div className={styles.headerActions}>
+            {fund.provider && (
+              <Button variant="secondary" onClick={() => setShowFetchModal(true)}>
+                Fetch Prices
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setShowEditModal(true)}>
+              Edit Fund
+            </Button>
+            <Link to="/transactions?action=add">
+              <Button>Add Transaction</Button>
+            </Link>
+          </div>
         }
       />
+
+      {/* Provider Badge */}
+      {fund.provider && (
+        <div className={styles.providerSection}>
+          <ProviderBadge provider={fund.provider} showIcon />
+        </div>
+      )}
 
       {/* Stats Grid */}
       <section className={styles.statsGrid}>
@@ -201,6 +224,27 @@ export function FundDetails() {
             </CardContent>
           </Card>
         </motion.div>
+      )}
+
+      {/* Modals */}
+      <UnitTrustFormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        unitTrust={fund}
+        onSuccess={() => {
+          setShowEditModal(false);
+        }}
+      />
+
+      {fund.provider && (
+        <FetchPricesModal
+          isOpen={showFetchModal}
+          onClose={() => setShowFetchModal(false)}
+          unitTrust={fund}
+          onSuccess={() => {
+            setShowFetchModal(false);
+          }}
+        />
       )}
     </div>
   );

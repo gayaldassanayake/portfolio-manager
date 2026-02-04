@@ -38,3 +38,42 @@
   color: var(--color-accent-hover);
   text-decoration: underline;
 }
+
+/* Header Actions */
+.headerActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Actions Column */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.fetchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.fetchButton:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+}
+
+.fetchButton:active {
+  transform: scale(0.95);
+}

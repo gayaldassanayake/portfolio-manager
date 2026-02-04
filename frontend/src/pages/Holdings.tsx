@@ -12,12 +12,16 @@ import {
   TableCell,
   TableEmpty,
   TableSkeleton,
+  Button,
 } from '../components/ui';
+import { ProviderBadge } from '../components/ui/ProviderBadge';
 import { Sparkline } from '../components/charts';
+import { UnitTrustFormModal } from '../components/features/UnitTrustFormModal';
+import { FetchPricesModal } from '../components/features/FetchPricesModal';
 import { useUnitTrusts } from '../api/hooks';
 import '../lib/formatters';
 import { sortBy } from '../lib/utils';
-import type { SortDirection } from '../types';
+import type { SortDirection, UnitTrust } from '../types';
 import styles from './Holdings.module.css';
 
 type SortKey = 'symbol' | 'name';
@@ -28,6 +32,9 @@ export function Holdings() {
     key: 'symbol',
     direction: 'asc',
   });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkFetchModal, setShowBulkFetchModal] = useState(false);
+  const [selectedFundForFetch, setSelectedFundForFetch] = useState<UnitTrust | null>(null);
 
   const sortedData = useMemo(() => {
     if (!unitTrusts) return [];
@@ -46,6 +53,14 @@ export function Holdings() {
       <PageHeader
         title="Holdings"
         description="All your unit trust investments"
+        action={
+          <div className={styles.headerActions}>
+            <Button variant="secondary" onClick={() => setShowBulkFetchModal(true)}>
+              Fetch All Prices
+            </Button>
+            <Button onClick={() => setShowAddModal(true)}>Add Fund</Button>
+          </div>
+        }
       />
 
       <motion.div
@@ -71,6 +86,7 @@ export function Holdings() {
                 >
                   Name
                 </TableHead>
+                <TableHead align="center">Provider</TableHead>
                 <TableHead align="right">Description</TableHead>
                 <TableHead align="center">Trend</TableHead>
                 <TableHead align="right">Actions</TableHead>
@@ -81,7 +97,7 @@ export function Holdings() {
                 <TableSkeleton rows={5} columns={5} />
               ) : error ? (
                 <TableEmpty
-                  colSpan={5}
+                  colSpan={6}
                   message="Failed to load holdings"
                   icon={
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -92,7 +108,7 @@ export function Holdings() {
                 />
               ) : sortedData.length === 0 ? (
                 <TableEmpty
-                  colSpan={5}
+                  colSpan={6}
                   message="No holdings found"
                   icon={
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -110,6 +126,9 @@ export function Holdings() {
                     <TableCell>
                       <span className={styles.name}>{fund.name}</span>
                     </TableCell>
+                    <TableCell align="center">
+                      <ProviderBadge provider={fund.provider} />
+                    </TableCell>
                     <TableCell align="right">
                       <span className={styles.description}>
                         {fund.description || '—'}
@@ -123,9 +142,39 @@ export function Holdings() {
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Link to={`/holdings/${fund.id}`} className={styles.viewLink}>
-                        View Details
-                      </Link>
+                      <div className={styles.actions}>
+                        {fund.provider && (
+                          <button
+                            className={styles.fetchButton}
+                            onClick={() => setSelectedFundForFetch(fund)}
+                            title="Fetch prices"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path
+                                d="M13 8C13 8 13 3 8 3C3 3 3 8 3 8"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                              />
+                              <path
+                                d="M13 8L10.5 5.5M13 8L10.5 10.5"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                              />
+                              <path
+                                d="M8 13V10"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                        <Link to={`/holdings/${fund.id}`} className={styles.viewLink}>
+                          View Details
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -134,6 +183,35 @@ export function Holdings() {
           </Table>
         </Card>
       </motion.div>
+
+      {/* Modals */}
+      <UnitTrustFormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => {
+          setShowAddModal(false);
+        }}
+      />
+
+      <FetchPricesModal
+        isOpen={showBulkFetchModal}
+        onClose={() => setShowBulkFetchModal(false)}
+        unitTrusts={unitTrusts || []}
+        onSuccess={() => {
+          // Optionally show a success toast
+        }}
+      />
+
+      {selectedFundForFetch && (
+        <FetchPricesModal
+          isOpen={!!selectedFundForFetch}
+          onClose={() => setSelectedFundForFetch(null)}
+          unitTrust={selectedFundForFetch}
+          onSuccess={() => {
+            setSelectedFundForFetch(null);
+          }}
+        />
+      )}
     </div>
   );
 }

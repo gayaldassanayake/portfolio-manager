@@ -138,3 +138,15 @@
   line-height: 1.7;
   margin: 0;
 }
+
+/* Provider Section */
+.providerSection {
+  margin-top: calc(var(--space-6) * -1);
+  margin-bottom: var(--space-4);
+}
+
+/* Header Actions */
+.headerActions {
+  display: flex;
+  gap: var(--space-3);
+}

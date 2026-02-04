@@ -12,6 +12,8 @@ import type {
   TransactionWithFund,
   Price,
   PriceCreate,
+  PriceFetchResult,
+  BulkPriceFetchResponse,
   PortfolioSummary,
   PortfolioPerformanceResponse,
   PortfolioHistoryPoint,
@@ -194,6 +196,45 @@ export const api = {
         method: 'POST',
         body: data,
       }),
+    
+    // Fetch prices from provider for a single unit trust
+    fetchForFund: (
+      unitTrustId: number,
+      startDate?: string,
+      endDate?: string
+    ) =>
+      request<PriceFetchResult>(`/prices/fetch/${unitTrustId}`, {
+        method: 'POST',
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+      }),
+    
+    // Bulk fetch prices for multiple unit trusts
+    fetchBulk: (
+      unitTrustIds?: number[],
+      startDate?: string,
+      endDate?: string
+    ) => {
+      const params: Record<string, string | number> = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      
+      // Build URL manually for array parameters
+      let url = '/prices/fetch';
+      if (unitTrustIds && unitTrustIds.length > 0) {
+        const queryParams = new URLSearchParams();
+        unitTrustIds.forEach(id => queryParams.append('unit_trust_ids', String(id)));
+        if (startDate) queryParams.append('start_date', startDate);
+        if (endDate) queryParams.append('end_date', endDate);
+        url = `${url}?${queryParams.toString()}`;
+      }
+      
+      return request<BulkPriceFetchResponse>(url, {
+        method: 'POST',
+      });
+    },
   },
 
   // Portfolio

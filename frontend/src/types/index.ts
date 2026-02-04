@@ -4,11 +4,15 @@
 // ============================================
 
 // Unit Trust (Fund) types
+export type Provider = 'yahoo' | 'cal';
+
 export interface UnitTrust {
   id: number;
   name: string;
   symbol: string;
   description: string | null;
+  provider: Provider | null;
+  provider_symbol: string | null;
   created_at: string;
 }
 
@@ -18,6 +22,8 @@ export interface UnitTrustWithStatsRaw {
   name: string;
   symbol: string;
   description: string | null;
+  provider: Provider | null;
+  provider_symbol: string | null;
   created_at: string;
   total_units: number;
   avg_purchase_price: number;
@@ -36,12 +42,16 @@ export interface UnitTrustCreate {
   name: string;
   symbol: string;
   description?: string;
+  provider?: Provider | null;
+  provider_symbol?: string | null;
 }
 
 export interface UnitTrustUpdate {
   name?: string;
   symbol?: string;
   description?: string;
+  provider?: Provider | null;
+  provider_symbol?: string | null;
 }
 
 // Transaction types
@@ -99,6 +109,31 @@ export interface PriceCreate {
   unit_trust_id: number;
   price: number;
   date: string;
+}
+
+// Price fetch result types
+export interface PriceFetchResult {
+  unit_trust_id: number;
+  symbol: string;
+  provider: string;
+  prices_fetched: number;
+  prices_saved: number;
+  prices: Price[];
+}
+
+export interface PriceFetchError {
+  unit_trust_id: number;
+  symbol: string;
+  provider: string | null;
+  error: string;
+}
+
+export interface BulkPriceFetchResponse {
+  total_requested: number;
+  successful: number;
+  failed: number;
+  results: PriceFetchResult[];
+  errors: PriceFetchError[];
 }
 
 // Portfolio types - matching actual backend response
