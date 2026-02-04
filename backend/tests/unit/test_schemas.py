@@ -1,12 +1,14 @@
 """Unit tests for Pydantic schema validation."""
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from decimal import Decimal
 
 import pytest
 from pydantic import ValidationError
 
 from app.schemas.portfolio import PerformanceMetrics, PortfolioHistory, PortfolioSummary
 from app.schemas.price import PriceCreate, PriceResponse
+from app.schemas.providers.cal_api import CALPriceEntry, CALPricesResponse
 from app.schemas.transaction import TransactionCreate, TransactionResponse
 from app.schemas.unit_trust import UnitTrustCreate, UnitTrustResponse, UnitTrustUpdate
 
@@ -214,6 +216,7 @@ class TestPortfolioSchemas:
         )
         assert schema.daily_return == 0.01
         assert schema.volatility == 0.15
+        assert schema.annualized_return == 0.12
         assert schema.sharpe_ratio == 1.5
 
     def test_performance_metrics_sharpe_ratio_none(self):
@@ -235,3 +238,153 @@ class TestPortfolioSchemas:
         )
         assert schema.value == 1000.0
         assert isinstance(schema.date, datetime)
+
+
+class TestCALAPISchemas:
+    """Test CAL API schema validation."""
+
+    def test_cal_price_entry_valid(self):
+        """Test valid CAL price entry parsing."""
+        entry = CALPriceEntry.model_validate(
+            {
+                'date': '2026-02-01',
+                'unit_price': '39.1854000000',
+            }
+        )
+        assert entry.date == date(2026, 2, 1)
+        assert entry.unit_price == Decimal('39.1854000000')
+        assert entry.red_price is None
+        assert entry.cre_price is None
+
+    def test_cal_price_entry_with_all_prices(self):
+        """Test CAL price entry with redemption and creation prices."""
+        entry = CALPriceEntry.model_validate(
+            {
+                'date': '2026-02-01',
+                'unit_price': '25.5000',
+                'red_price': '25.3750',
+                'cre_price': '25.6250',
+            }
+        )
+        assert entry.unit_price == Decimal('25.5000')
+        assert entry.red_price == Decimal('25.3750')
+        assert entry.cre_price == Decimal('25.6250')
+
+    def test_cal_price_entry_decimal_parsing(self):
+        """Test that string prices are correctly parsed to Decimal."""
+        entry = CALPriceEntry.model_validate(
+            {
+                'date': '2026-02-01',
+                'unit_price': '100.123456789',
+            }
+        )
+        assert isinstance(entry.unit_price, Decimal)
+        assert entry.unit_price == Decimal('100.123456789')
+
+    def test_cal_price_entry_invalid_unit_price(self):
+        """Test validation error for missing unit_price."""
+        with pytest.raises(ValidationError) as exc_info:
+            CALPriceEntry.model_validate(
+                {
+                    'date': '2026-02-01',
+                    'unit_price': None,  # Should fail - unit_price is required
+                }
+            )
+        assert 'unit_price' in str(exc_info.value).lower()
+
+    def test_cal_price_entry_zero_unit_price(self):
+        """Test validation error for zero unit_price."""
+        with pytest.raises(ValidationError) as exc_info:
+            CALPriceEntry.model_validate(
+                {
+                    'date': '2026-02-01',
+                    'unit_price': '0.0',  # Should fail - gt=0 constraint
+                }
+            )
+        assert 'unit_price' in str(exc_info.value).lower()
+
+    def test_cal_price_entry_negative_unit_price(self):
+        """Test validation error for negative unit_price."""
+        with pytest.raises(ValidationError) as exc_info:
+            CALPriceEntry.model_validate(
+                {
+                    'date': '2026-02-01',
+                    'unit_price': '-10.5',  # Should fail - gt=0 constraint
+                }
+            )
+        assert 'unit_price' in str(exc_info.value).lower()
+
+    def test_cal_price_entry_empty_string_optional_prices(self):
+        """Test that empty strings for optional prices become None."""
+        entry = CALPriceEntry.model_validate(
+            {
+                'date': '2026-02-01',
+                'unit_price': '39.00',
+                'red_price': '',
+                'cre_price': '',
+            }
+        )
+
+        assert entry.red_price is None
+        assert entry.cre_price is None
+
+    def test_cal_prices_response_valid(self):
+        """Test valid CAL prices response parsing."""
+        response_data = {
+            'IGF': [
+                {
+                    'date': '2026-02-01',
+                    'unit_price': '39.1854000000',
+                    'red_price': None,
+                    'cre_price': None,
+                },
+                {
+                    'date': '2026-02-02',
+                    'unit_price': '39.2100000000',
+                    'red_price': None,
+                    'cre_price': None,
+                },
+            ]
+        }
+        response = CALPricesResponse.model_validate(response_data)
+        assert 'IGF' in response.root
+        assert len(response.root['IGF']) == 2
+        assert response.root['IGF'][0].unit_price == Decimal('39.1854000000')
+
+    def test_cal_prices_response_multiple_funds(self):
+        """Test CAL prices response with multiple funds."""
+        response_data = {
+            'IGF': [
+                {'date': '2026-02-01', 'unit_price': '39.00', 'red_price': None, 'cre_price': None}
+            ],
+            'QEF': [
+                {'date': '2026-02-01', 'unit_price': '25.50', 'red_price': None, 'cre_price': None}
+            ],
+        }
+        response = CALPricesResponse.model_validate(response_data)
+        assert len(response.root) == 2
+        assert 'IGF' in response.root
+        assert 'QEF' in response.root
+
+    def test_cal_prices_response_empty_array(self):
+        """Test CAL prices response with empty price array."""
+        response_data = {'IGF': []}
+        response = CALPricesResponse.model_validate(response_data)
+        assert 'IGF' in response.root
+        assert len(response.root['IGF']) == 0
+
+    def test_cal_prices_response_invalid_structure(self):
+        """Test validation error for invalid response structure."""
+        with pytest.raises(ValidationError):
+            # Not a dict
+            CALPricesResponse.model_validate(['invalid'])
+
+    def test_cal_price_entry_invalid_date_format(self):
+        """Test validation error for invalid date format."""
+        with pytest.raises(ValidationError):
+            CALPriceEntry.model_validate(
+                {
+                    'date': 'not-a-date',
+                    'unit_price': '39.00',
+                }
+            )

@@ -7,6 +7,7 @@ from app.schemas.portfolio import (
     PortfolioSummary,
 )
 from app.schemas.price import PriceCreate, PriceResponse, PriceUpdate
+from app.schemas.providers.cal_api import CALPriceEntry, CALPricesResponse
 from app.schemas.transaction import (
     TransactionCreate,
     TransactionResponse,
@@ -36,4 +37,6 @@ __all__ = [
     'PerformanceMetrics',
     'PortfolioHistory',
     'PortfolioPerformance',
+    'CALPriceEntry',
+    'CALPricesResponse',
 ]

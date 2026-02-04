@@ -159,7 +159,11 @@ class TestPortfolioAPI:
         """Test portfolio performance returns all components."""
         ut = make_unit_trust()
         prices = make_price_history(unit_trust_id=1, days=30, start_price=100.0)
-        txn = make_transaction(unit_trust_id=1, units=10.0, price_per_unit=100.0)
+        # Create transaction at the start of the price history period
+        transaction_date = datetime.now(timezone.utc) - timedelta(days=30)
+        txn = make_transaction(
+            unit_trust_id=1, units=10.0, price_per_unit=100.0, transaction_date=transaction_date
+        )
         test_db.add_all([ut, *prices, txn])
         await test_db.commit()
 
@@ -189,9 +193,15 @@ class TestPortfolioAPI:
 
     async def test_portfolio_history_date_range(self, client: AsyncClient, test_db: AsyncSession):
         """Test portfolio history respects days parameter."""
+        from datetime import datetime, timedelta, timezone
+
         ut = make_unit_trust()
         prices = make_price_history(unit_trust_id=1, days=60, start_price=100.0)
-        txn = make_transaction(unit_trust_id=1, units=10.0, price_per_unit=100.0)
+        # Create transaction at the start of the price history period
+        transaction_date = datetime.now(timezone.utc) - timedelta(days=60)
+        txn = make_transaction(
+            unit_trust_id=1, units=10.0, price_per_unit=100.0, transaction_date=transaction_date
+        )
         test_db.add_all([ut, *prices, txn])
         await test_db.commit()
 
