@@ -1,8 +1,7 @@
 """Unit tests for CAL price provider."""
 
 from datetime import date
-from decimal import Decimal
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 import pytest
