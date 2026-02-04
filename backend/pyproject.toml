@@ -15,6 +15,7 @@ dependencies = [
     "greenlet>=3.3.0",
     "yfinance>=0.2.50",
     "httpx>=0.28.1",
+    "pyxirr>=0.10.6",
 ]
 
 [dependency-groups]

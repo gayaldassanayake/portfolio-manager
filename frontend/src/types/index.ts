@@ -139,6 +139,7 @@ export interface BulkPriceFetchResponse {
 // Portfolio types - matching actual backend response
 export interface PortfolioSummary {
   total_invested: number;
+  total_withdrawn: number;
   current_value: number;
   total_gain_loss: number;
   roi_percentage: number;
@@ -163,14 +164,14 @@ export interface PortfolioPerformanceResponse {
 export interface PerformanceMetrics {
   daily_return: number;
   volatility: number;
-  annualized_return: number;
   max_drawdown: number;
   sharpe_ratio: number | null;
-  // Placeholders for future backend implementation
-  best_day?: number | null;
-  worst_day?: number | null;
-  total_return?: number | null;
-  total_return_percentage?: number | null;
+  net_return: number;
+  unrealized_roi: number;
+  twr_annualized: number | null;
+  mwr_annualized: number | null;
+  best_day: number | null;
+  worst_day: number | null;
 }
 
 // ============================================

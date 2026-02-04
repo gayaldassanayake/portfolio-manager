@@ -58,6 +58,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "pydantic" },
+    { name = "pyxirr" },
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "yfinance" },
@@ -80,6 +81,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.1" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pydantic", specifier = ">=2.12.0" },
+    { name = "pyxirr", specifier = ">=0.10.6" },
     { name = "sqlalchemy", specifier = ">=2.0.45" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.40.0" },
     { name = "yfinance", specifier = ">=0.2.50" },
@@ -626,6 +628,39 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
+]
+
+[[package]]
+name = "pyxirr"
+version = "0.10.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/79/9c329287b4fbcea245a74680e06f0b9139305ef71ba814b2f6c12562285e/pyxirr-0.10.8.tar.gz", hash = "sha256:a5620dd76015444f26f805c4983a41664898fbf2a74956a28589b171ed96d2f5", size = 40341, upload-time = "2025-11-03T22:16:19.702Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/7d/a85ee18673bd2ddd6281b8653f6c3d554e015cda20d1fd1b0821fd120544/pyxirr-0.10.8-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:fd7b4af506a2eb0deedcc6373381e0b7509c2882fde6036714068cf3f5344664", size = 503842, upload-time = "2025-11-03T22:16:29.611Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/66/72af63e6238da45b7619a041c0662f63ebcfcef55d48c78932002e857ef9/pyxirr-0.10.8-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:8cfb84e857c9ea2dba28c033ac81f9072ac0aff1dfa7f35dab36b599bf715174", size = 453601, upload-time = "2025-11-03T22:17:49.235Z" },
+    { url = "https://files.pythonhosted.org/packages/96/0b/ff310beea7f7b6d56e6b63b008a82e5783f3f3628dfb14c33333193918b7/pyxirr-0.10.8-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:68b0a3eb78e00f58c3251ef08668d10b1ad37d323c130d193788d0dd002a6389", size = 465741, upload-time = "2025-11-03T22:15:33.842Z" },
+    { url = "https://files.pythonhosted.org/packages/60/d4/c46f368b1ba2211e9746f27d7728d79a1a7264c4e5f3314068b69ef5f990/pyxirr-0.10.8-cp314-cp314-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:4dec8d38f60160cc35cf03d9953c58655ba80f70189d5b5b93616828cc1cc1e6", size = 470829, upload-time = "2025-11-03T22:15:20.072Z" },
+    { url = "https://files.pythonhosted.org/packages/09/f1/25f66bb783f155b464125c5f03b675a4385839b424645b90e1df76d7d80b/pyxirr-0.10.8-cp314-cp314-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:8e2ed244cfcb41a1275fc160103341a773e02d1e2d29668ac51d6b956b93154d", size = 533361, upload-time = "2025-11-03T22:17:02.736Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/2c/3d907a9128454f2e8494cae3cbd241f3f19f10c19f7c3a679eb6c1f3527e/pyxirr-0.10.8-cp314-cp314-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:0b8869291f5625cfa9b3fac84575b1aee8390d5fbfaaac5f6b426322a8b67e02", size = 652807, upload-time = "2025-11-03T22:17:05.739Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/94/0f789405e2f848056783e496d04e91296643c016ecd1158d057e1ba861d9/pyxirr-0.10.8-cp314-cp314-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:593a2f0dffa6873c605a95136a1277280917703347cc9098eee6099da12252db", size = 662334, upload-time = "2025-11-03T22:16:14.747Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/9d/59f8aed8c40c4e8bc991672ef22a75f3ee66bdfb592ce17e144f60db5a28/pyxirr-0.10.8-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ce53ec01ab05da76e37e4d66e94c0274fd1e416b93412d8be8da1ef6236176fe", size = 532817, upload-time = "2025-11-03T22:15:44.888Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/3e/465d93f50dd09c9ca7d4699989c6c046c22018b96f8b32d85c983a039a13/pyxirr-0.10.8-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:73360047fa9775c2278bcbc190a4af98c669ad35f1d3868c9ffcea2d9d82e033", size = 648088, upload-time = "2025-11-03T22:17:16.711Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/85/ab66b359bd09836c98fc84b771abad2d419dd0f47c5f71908127af9b7b59/pyxirr-0.10.8-cp314-cp314-musllinux_1_2_armv7l.whl", hash = "sha256:5b058ebd11251375420718844063b9a5abafbd4b02519486f60515cddfcf455c", size = 735943, upload-time = "2025-11-03T22:16:23.918Z" },
+    { url = "https://files.pythonhosted.org/packages/37/a2/a86da0b048180a0a4ab3d1b65f3bbf1457ca503a1c141a11f1425aed61ad/pyxirr-0.10.8-cp314-cp314-musllinux_1_2_i686.whl", hash = "sha256:14b4ed182226981248f88a286e1f9aa42114e189d105caf470697f8af6e2b2a7", size = 730669, upload-time = "2025-11-03T22:15:43.37Z" },
+    { url = "https://files.pythonhosted.org/packages/23/d1/4cc1024e84da052b3ee46b4c479a6e187e699030692802dabab527c07e76/pyxirr-0.10.8-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:23d28b4e80942decbcfd9c2c90078fe49e7522c3c654f37044be86a423110a2b", size = 706903, upload-time = "2025-11-03T22:17:07.177Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/fb/08006985096f8fb7de1eba7f554d870bb53051dc3c90ed7caab46169169c/pyxirr-0.10.8-cp314-none-win_amd64.whl", hash = "sha256:69372d1c4663f14d53bf4e9101d4faa8269a50eb9b14495ff49e55d8e796acc7", size = 457507, upload-time = "2025-11-03T22:17:24.582Z" },
+    { url = "https://files.pythonhosted.org/packages/51/d7/4c5afe0bcec2f392904d47f4ce54c8f746cce39c6351b6dbd58ea5406c84/pyxirr-0.10.8-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:cdd20306ea5401aa154f65764324b58983fe50b778a9675295a59bb135e906a8", size = 513451, upload-time = "2025-11-03T22:15:21.636Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/5c/5c7b0c28aa9a8e4cd31051637a95d425a55f18c1f3789b1983869f63150e/pyxirr-0.10.8-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:b9b1dbee786c219b1f95449ca5fb6e47632a277bcb184750466e1c9048235974", size = 460406, upload-time = "2025-11-03T22:17:28.079Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/ac/5ea4326645a68833a6e14f09dc6b8bb780513d824d344cdc5e5ca2785ab5/pyxirr-0.10.8-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4c796823279db7d9794f3245b78d17b1070c4d4683ff57adbcc50b8f690f5246", size = 471426, upload-time = "2025-11-03T22:16:33.117Z" },
+    { url = "https://files.pythonhosted.org/packages/18/08/5314c9b3cab2badb23ca4341b411337327beda641b3e01f79fa96e7dc080/pyxirr-0.10.8-cp37-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:b707ad6433cd0e08e4a31378ac41b2d7eceaa535b23f6cdda1a69bdf767d0c4e", size = 474791, upload-time = "2025-11-03T22:16:35.9Z" },
+    { url = "https://files.pythonhosted.org/packages/53/6c/5d119a9e1605dbfcd5dbbc7762234008392972b1dcba9ac3164624c680b2/pyxirr-0.10.8-cp37-abi3-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:c0d4cb328c74a761544d4a78b200064a9ea62b3534f32b1aaa555defbd127be4", size = 543472, upload-time = "2025-11-03T22:16:00.065Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/67/37b48dcc55dd20e3fe29c4aabc96471f703900106254565242c2346d5b3f/pyxirr-0.10.8-cp37-abi3-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:24a3335ced4b7d18da244f0fa0b68a5cce74558b8bfe385db2533e8f5e961d69", size = 670864, upload-time = "2025-11-03T22:15:04.18Z" },
+    { url = "https://files.pythonhosted.org/packages/0e/71/b3ab12603e893b76f56cd59b39cf55ec714f864c0d4b08da108bb7fca1db/pyxirr-0.10.8-cp37-abi3-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:8613ed3e909025defcd0726f3dff5880759a3cf8ab8004510afb6ea2f66895c8", size = 672689, upload-time = "2025-11-03T22:18:01.399Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/3d/f5d9da98686220490c80bab8a50bf8f356baf2e3d292859092acf6d5648b/pyxirr-0.10.8-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2cf5216d71d90466965591d92bec14f4a5ccce492e351b5e46a7b1b62fefea44", size = 541386, upload-time = "2025-11-03T22:15:37.881Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/f7/d6deae1e9ab1211552a43d3101c38f96cfba22db9c9ebf8af2767e18ee59/pyxirr-0.10.8-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:749bc7a71a1f4257afed6caa71ea4d29a0cfdd15c325582026b077095a3be4cb", size = 653692, upload-time = "2025-11-03T22:15:41.97Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/89/107c6f5c8936aaf0d8bccdd9f5a666371553c4a20022595a05f23413e2d4/pyxirr-0.10.8-cp37-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:6dd479d44eb0c784b041766044b4a7562d3e22b807b7c8b5fdad123461ebb531", size = 739907, upload-time = "2025-11-03T22:16:49.144Z" },
+    { url = "https://files.pythonhosted.org/packages/83/9e/c6a4c3258247a99ca8f6650b30453991a03995a627b0d55303bc6f18cc37/pyxirr-0.10.8-cp37-abi3-musllinux_1_2_i686.whl", hash = "sha256:c4b9ea37f905ed6f571292b73942d6c0382823ac326a52b00e62107b8851cbb4", size = 733700, upload-time = "2025-11-03T22:17:52.462Z" },
+    { url = "https://files.pythonhosted.org/packages/52/b3/ba76ff08ce7ff049fc05089d9b5527ec2fb3c1e50e8269d903478bed2cc0/pyxirr-0.10.8-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:df00db884ecd138bfe9eb2146e5bcc6d6a0f65efeec4cbdffd19aed6ce11f2d3", size = 715211, upload-time = "2025-11-03T22:15:39.352Z" },
 ]
 
 [[package]]

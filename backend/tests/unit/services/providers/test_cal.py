@@ -1,6 +1,7 @@
 """Unit tests for CAL price provider."""
 
 from datetime import date
+from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -232,9 +233,9 @@ class TestCALProvider:
 
         with patch('httpx.AsyncClient') as mock_client_class:
             mock_client = AsyncMock()
-            mock_response = AsyncMock()
-            mock_response.json.return_value = mock_response_json
-            mock_response.raise_for_status = AsyncMock()
+            mock_response = Mock()
+            mock_response.json.return_value = AsyncMock(return_value=mock_response_json)
+            mock_response.raise_for_status = Mock()
             mock_client.get.return_value = mock_response
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = AsyncMock()

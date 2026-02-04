@@ -112,7 +112,60 @@ export function Performance() {
         </Card>
       </motion.div>
 
-      {/* Metrics Grid */}
+      {/* Returns Section - Four Key Metrics */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Returns</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={styles.returnsGrid}>
+              <div className={styles.returnItem}>
+                <span className={styles.returnLabel}>Net Return</span>
+                <span className={`${styles.returnValue} ${metrics && metrics.net_return >= 0 ? styles.positive : styles.negative}`}>
+                  {formatMetricPercent(metrics?.net_return)}
+                </span>
+                <span className={styles.returnDescription}>
+                  Total return including realized gains
+                </span>
+              </div>
+              <div className={styles.returnItem}>
+                <span className={styles.returnLabel}>Unrealized ROI</span>
+                <span className={`${styles.returnValue} ${metrics && metrics.unrealized_roi >= 0 ? styles.positive : styles.negative}`}>
+                  {formatMetricPercent(metrics?.unrealized_roi)}
+                </span>
+                <span className={styles.returnDescription}>
+                  Current holdings vs cost basis (FIFO)
+                </span>
+              </div>
+              <div className={styles.returnItem}>
+                <span className={styles.returnLabel}>Time-Weighted Return</span>
+                <span className={`${styles.returnValue} ${metrics && (metrics.twr_annualized ?? 0) >= 0 ? styles.positive : styles.negative}`}>
+                  {metrics?.twr_annualized != null ? formatMetricPercent(metrics.twr_annualized) : '—'}
+                </span>
+                <span className={styles.returnDescription}>
+                  Annualized investment performance
+                </span>
+              </div>
+              <div className={styles.returnItem}>
+                <span className={styles.returnLabel}>Money-Weighted Return</span>
+                <span className={`${styles.returnValue} ${metrics && (metrics.mwr_annualized ?? 0) >= 0 ? styles.positive : styles.negative}`}>
+                  {metrics?.mwr_annualized != null ? formatMetricPercent(metrics.mwr_annualized) : '—'}
+                </span>
+                <span className={styles.returnDescription}>
+                  Annualized personal return (IRR)
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Risk & Volatility Metrics */}
       <section className={styles.metricsGrid}>
         <StatCard
           label="Daily Return"
@@ -120,73 +173,31 @@ export function Performance() {
           delay={0}
         />
         <StatCard
-          label="Annualized Return"
-          value={formatMetricPercent(metrics?.annualized_return)}
-          delay={1}
-        />
-        <StatCard
           label="Volatility"
           value={formatMetricPercent(metrics?.volatility)}
-          delay={2}
+          delay={1}
         />
         <StatCard
           label="Sharpe Ratio"
           value={metrics?.sharpe_ratio != null ? metrics.sharpe_ratio.toFixed(2) : '—'}
-          delay={3}
+          delay={2}
         />
         <StatCard
           label="Max Drawdown"
           value={formatMetricPercent(metrics?.max_drawdown)}
-          delay={4}
+          delay={3}
         />
         <StatCard
           label="Best Day"
           value={metrics?.best_day != null ? formatMetricPercent(metrics.best_day) : '—'}
-          change={metrics?.best_day != null ? { value: '', type: 'positive' } : undefined}
+          delay={4}
+        />
+        <StatCard
+          label="Worst Day"
+          value={metrics?.worst_day != null ? formatMetricPercent(metrics.worst_day) : '—'}
           delay={5}
         />
       </section>
-
-      {/* Performance Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Worst Day</span>
-                <span className={`${styles.summaryValue} ${styles.negative}`}>
-                  {metrics?.worst_day != null ? formatMetricPercent(metrics.worst_day) : '—'}
-                </span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Best Day</span>
-                <span className={`${styles.summaryValue} ${styles.positive}`}>
-                  {metrics?.best_day != null ? formatMetricPercent(metrics.best_day) : '—'}
-                </span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Annualized Return</span>
-                <span className={`${styles.summaryValue} ${metrics && metrics.annualized_return >= 0 ? styles.positive : styles.negative}`}>
-                  {formatMetricPercent(metrics?.annualized_return)}
-                </span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Sharpe Ratio</span>
-                <span className={styles.summaryValue}>
-                  {metrics?.sharpe_ratio != null ? metrics.sharpe_ratio.toFixed(2) : '—'}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
     </div>
   );
 }

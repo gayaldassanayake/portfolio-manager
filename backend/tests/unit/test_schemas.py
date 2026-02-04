@@ -196,6 +196,7 @@ class TestPortfolioSchemas:
         """Test portfolio summary model construction."""
         schema = PortfolioSummary(
             total_invested=1000.0,
+            total_withdrawn=0.0,
             current_value=1100.0,
             total_gain_loss=100.0,
             roi_percentage=10.0,
@@ -203,6 +204,7 @@ class TestPortfolioSchemas:
             holding_count=1,
         )
         assert schema.total_invested == 1000.0
+        assert schema.total_withdrawn == 0.0
         assert schema.roi_percentage == 10.0
 
     def test_performance_metrics_from_dict(self):
@@ -210,13 +212,21 @@ class TestPortfolioSchemas:
         schema = PerformanceMetrics(
             daily_return=0.01,
             volatility=0.15,
-            annualized_return=0.12,
             max_drawdown=-0.05,
             sharpe_ratio=1.5,
+            net_return=0.12,
+            unrealized_roi=0.10,
+            twr_annualized=0.10,
+            mwr_annualized=0.11,
+            best_day=0.02,
+            worst_day=-0.01,
         )
         assert schema.daily_return == 0.01
         assert schema.volatility == 0.15
-        assert schema.annualized_return == 0.12
+        assert schema.net_return == 0.12
+        assert schema.unrealized_roi == 0.10
+        assert schema.twr_annualized == 0.10
+        assert schema.mwr_annualized == 0.11
         assert schema.sharpe_ratio == 1.5
 
     def test_performance_metrics_sharpe_ratio_none(self):
@@ -224,11 +234,18 @@ class TestPortfolioSchemas:
         schema = PerformanceMetrics(
             daily_return=0.0,
             volatility=0.0,
-            annualized_return=0.0,
             max_drawdown=0.0,
             sharpe_ratio=None,
+            net_return=0.0,
+            unrealized_roi=0.0,
+            twr_annualized=None,
+            mwr_annualized=None,
+            best_day=None,
+            worst_day=None,
         )
         assert schema.sharpe_ratio is None
+        assert schema.twr_annualized is None
+        assert schema.mwr_annualized is None
 
     def test_portfolio_history_from_dict(self):
         """Test portfolio history model construction."""
