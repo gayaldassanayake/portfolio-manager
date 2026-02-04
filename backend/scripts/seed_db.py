@@ -1,7 +1,7 @@
-"""Generate sample data for the portfolio database."""
+"""Generate sample data for the portfolio database using real Yahoo Finance data."""
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import select
 
@@ -9,68 +9,91 @@ from app.database import AsyncSessionLocal, Base, engine
 from app.models.price import Price
 from app.models.transaction import Transaction
 from app.models.unit_trust import UnitTrust
+from app.services.providers import ProviderError, get_provider
 
+# Sample unit trusts with Yahoo Finance tickers
 SAMPLE_UNIT_TRUSTS = [
     {
         'name': 'Vanguard 500 Index Fund',
         'symbol': 'VFIAX',
         'description': 'A mutual fund that tracks the S&P 500 index of large-cap US stocks.',
+        'provider': 'yahoo',
     },
     {
         'name': 'Fidelity Contrafund',
         'symbol': 'FCNTX',
         'description': 'An actively managed fund investing in US companies with strong growth'
         + ' potential.',
+        'provider': 'yahoo',
     },
     {
         'name': 'T. Rowe Price Blue Chip Growth Fund',
         'symbol': 'TRBCX',
         'description': 'A fund focused on large-cap US growth companies with sustainable'
         + ' competitive advantages.',
+        'provider': 'yahoo',
     },
     {
-        'name': 'American Funds Growth Fund of America',
-        'symbol': 'AGTHX',
-        'description': 'A diversified growth fund investing in US and international companies.',
+        'name': 'Apple Inc.',
+        'symbol': 'AAPL',
+        'description': 'Apple Inc. designs, manufactures, and markets smartphones, computers, '
+        + 'tablets, wearables, and accessories.',
+        'provider': 'yahoo',
+    },
+    {
+        'name': 'Microsoft Corporation',
+        'symbol': 'MSFT',
+        'description': 'Microsoft develops and supports software, services, devices, '
+        + 'and solutions worldwide.',
+        'provider': 'yahoo',
     },
 ]
 
 
-async def generate_price_history(unit_trust_id: int, days: int = 365):
-    """Generate price history for a unit trust.
+async def fetch_price_history_from_yahoo(
+    unit_trust_id: int, symbol: str, days: int = 365
+) -> list[Price]:
+    """Fetch real price history from Yahoo Finance.
 
     Args:
         unit_trust_id: Unit trust ID.
-        days: Number of days of price history.
+        symbol: Yahoo Finance ticker symbol.
+        days: Number of days of price history to fetch.
+
+    Returns:
+        List of Price objects with real market data.
 
     """
-    base_price = 1.0
-    volatility = 0.02
+    provider = get_provider('yahoo')
+    if not provider:
+        raise RuntimeError('Yahoo provider not available')
+
+    end_date = date.today()
+    start_date = end_date - timedelta(days=days)
+
+    try:
+        fetched_prices = await provider.fetch_prices(symbol, start_date, end_date)
+    except ProviderError as e:
+        print(f'    Warning: Could not fetch prices for {symbol}: {e}')
+        return []
 
     prices = []
-    base_date = datetime.now(timezone.utc) - timedelta(days=days)
-
-    for i in range(days):
-        date = base_date + timedelta(days=i)
-        if i == 0:
-            price = base_price
-        else:
-            change = 1 + (hash(str(date)) % 1000 - 500) / 10000 * volatility * 10
-            price = max(0.1, prices[-1].price * change)
-
+    for fp in fetched_prices:
         prices.append(
             Price(
                 unit_trust_id=unit_trust_id,
-                date=date.replace(hour=0, minute=0, second=0, microsecond=0),
-                price=round(price, 4),
+                date=datetime.combine(fp.date, datetime.min.time(), tzinfo=timezone.utc),
+                price=round(fp.price, 4),
             )
         )
 
     return prices
 
 
-async def generate_transactions(unit_trust_id: int, count: int = 12):
-    """Generate sample transactions for a unit trust.
+async def generate_transactions(
+    unit_trust_id: int, prices: list[Price], count: int = 12
+) -> list[Transaction]:
+    """Generate sample transactions for a unit trust using real prices.
 
     Generates a mix of buy and sell transactions. Buy transactions are more
     frequent (about 75%) and sell transactions are smaller (about 30-50% of
@@ -78,12 +101,25 @@ async def generate_transactions(unit_trust_id: int, count: int = 12):
 
     Args:
         unit_trust_id: Unit trust ID.
+        prices: List of Price objects to use for transaction prices.
         count: Number of transactions to generate.
 
+    Returns:
+        List of Transaction objects.
+
     """
+    if not prices:
+        return []
+
     transactions = []
-    base_date = datetime.now(timezone.utc) - timedelta(days=365)
     accumulated_units = 0.0
+
+    # Create a price lookup by date
+    price_by_date: dict[date, float] = {p.date.date(): p.price for p in prices}
+    sorted_dates = sorted(price_by_date.keys())
+
+    if len(sorted_dates) < count:
+        count = len(sorted_dates)
 
     # Sample notes for transactions
     buy_notes = [
@@ -102,13 +138,17 @@ async def generate_transactions(unit_trust_id: int, count: int = 12):
         None,
     ]
 
+    # Space transactions evenly across the date range
+    step = max(1, len(sorted_dates) // count)
+
     for i in range(count):
-        transaction_date = base_date + timedelta(days=i * (365 // count))
-        price_per_unit = round(1.0 + (hash(str(transaction_date)) % 100) / 100, 4)
+        date_idx = min(i * step, len(sorted_dates) - 1)
+        transaction_date = sorted_dates[date_idx]
+        price_per_unit = price_by_date[transaction_date]
 
         # Determine if this should be a sell transaction
         # Only sell after we have some units, and roughly 25% of transactions are sells
-        is_sell = accumulated_units > 100 and (hash(str(transaction_date) + 'type') % 4 == 0)
+        is_sell = accumulated_units > 10 and (hash(str(transaction_date) + 'type') % 4 == 0)
 
         if is_sell:
             # Sell 30-50% of accumulated units
@@ -118,8 +158,9 @@ async def generate_transactions(unit_trust_id: int, count: int = 12):
             notes = sell_notes[hash(str(transaction_date) + 'note') % len(sell_notes)]
             accumulated_units -= units
         else:
-            # Buy transaction
-            units = round(100 + (hash(str(transaction_date)) % 500), 2)
+            # Buy transaction - amount varies by price (invest ~$1000-5000 worth)
+            investment_amount = 1000 + (hash(str(transaction_date)) % 4000)
+            units = round(investment_amount / price_per_unit, 4)
             transaction_type = 'buy'
             notes = buy_notes[hash(str(transaction_date) + 'note') % len(buy_notes)]
             accumulated_units += units
@@ -130,7 +171,9 @@ async def generate_transactions(unit_trust_id: int, count: int = 12):
                 transaction_type=transaction_type,
                 units=units,
                 price_per_unit=price_per_unit,
-                transaction_date=transaction_date,
+                transaction_date=datetime.combine(
+                    transaction_date, datetime.min.time(), tzinfo=timezone.utc
+                ),
                 notes=notes,
             )
         )
@@ -160,12 +203,16 @@ async def seed_database():
 
             print(f'Created unit trust: {unit_trust.name} ({unit_trust.symbol})')
 
-            prices = await generate_price_history(unit_trust.id, days=365)
+            # Fetch real prices from Yahoo Finance
+            print('  - Fetching price history from Yahoo Finance...')
+            prices = await fetch_price_history_from_yahoo(
+                unit_trust.id, unit_trust.symbol, days=365
+            )
             for price in prices:
                 session.add(price)
             print(f'  - Added {len(prices)} price records')
 
-            transactions = await generate_transactions(unit_trust.id, count=12)
+            transactions = await generate_transactions(unit_trust.id, prices, count=12)
             for transaction in transactions:
                 session.add(transaction)
             buy_count = sum(1 for t in transactions if t.transaction_type == 'buy')

@@ -11,6 +11,8 @@ def make_unit_trust(
     name: str = 'Test Fund',
     symbol: str = 'TEST',
     description: str | None = 'Test unit trust description',
+    provider: str | None = None,
+    provider_symbol: str | None = None,
 ) -> UnitTrust:
     """Create a unit trust instance for testing.
 
@@ -18,12 +20,20 @@ def make_unit_trust(
         name: Unit trust name.
         symbol: Unit trust symbol.
         description: Unit trust description.
+        provider: Price provider name (e.g., 'yahoo', 'cal').
+        provider_symbol: Symbol used by the provider.
 
     Returns:
         UnitTrust: Test unit trust instance.
 
     """
-    return UnitTrust(name=name, symbol=symbol, description=description)
+    return UnitTrust(
+        name=name,
+        symbol=symbol,
+        description=description,
+        provider=provider,
+        provider_symbol=provider_symbol,
+    )
 
 
 def make_price(

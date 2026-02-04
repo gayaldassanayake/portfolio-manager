@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from app.schemas.portfolio import PerformanceMetrics, PortfolioHistory, PortfolioSummary
 from app.schemas.price import PriceCreate, PriceResponse
 from app.schemas.transaction import TransactionCreate, TransactionResponse
-from app.schemas.unit_trust import UnitTrustCreate, UnitTrustResponse
+from app.schemas.unit_trust import UnitTrustCreate, UnitTrustResponse, UnitTrustUpdate
 
 
 class TestUnitTrustSchemas:
@@ -16,16 +16,21 @@ class TestUnitTrustSchemas:
 
     def test_unit_trust_create_valid(self):
         """Test valid unit trust creation data."""
-        data = {'name': 'Test Fund', 'symbol': 'TEST', 'description': 'A test fund'}
-        schema = UnitTrustCreate(**data)
+        schema = UnitTrustCreate(
+            name='Test Fund',
+            symbol='TEST',
+            description='A test fund',
+        )
         assert schema.name == 'Test Fund'
         assert schema.symbol == 'TEST'
         assert schema.description == 'A test fund'
 
     def test_unit_trust_create_without_description(self):
         """Test unit trust creation without optional description."""
-        data = {'name': 'Test Fund', 'symbol': 'TEST'}
-        schema = UnitTrustCreate(**data)
+        schema = UnitTrustCreate(
+            name='Test Fund',
+            symbol='TEST',
+        )
         assert schema.name == 'Test Fund'
         assert schema.symbol == 'TEST'
         assert schema.description is None
@@ -46,6 +51,58 @@ class TestUnitTrustSchemas:
         )
         assert schema.id == 1
         assert schema.name == 'Test Fund'
+
+    def test_unit_trust_create_with_valid_provider(self):
+        """Test unit trust creation with valid provider values."""
+        # Test 'yahoo' provider
+        schema_yahoo = UnitTrustCreate(
+            name='Yahoo Fund',
+            symbol='YHOO',
+            provider='yahoo',
+        )
+        assert schema_yahoo.provider == 'yahoo'
+
+        # Test 'cal' provider
+        schema_cal = UnitTrustCreate(
+            name='CAL Fund',
+            symbol='CAL',
+            provider='cal',
+        )
+        assert schema_cal.provider == 'cal'
+
+    def test_unit_trust_create_with_invalid_provider(self):
+        """Test unit trust creation fails with invalid provider."""
+        with pytest.raises(ValidationError) as exc_info:
+            UnitTrustCreate(
+                name='Invalid Fund',
+                symbol='INV',
+                provider='invalid_provider',  # ty:ignore[invalid-argument-type]
+            )
+        # Check error mentions the invalid value
+        assert 'provider' in str(exc_info.value).lower()
+
+    def test_unit_trust_create_with_provider_symbol(self):
+        """Test unit trust creation with provider_symbol."""
+        schema = UnitTrustCreate(
+            name='Test Fund',
+            symbol='INTERNAL',
+            provider='yahoo',
+            provider_symbol='EXTERNAL',
+        )
+        assert schema.symbol == 'INTERNAL'
+        assert schema.provider_symbol == 'EXTERNAL'
+
+    def test_unit_trust_update_with_provider(self):
+        """Test unit trust update with provider field."""
+        schema = UnitTrustUpdate(provider='cal')
+        assert schema.provider == 'cal'
+        assert schema.name is None
+        assert schema.symbol is None
+
+    def test_unit_trust_update_with_invalid_provider(self):
+        """Test unit trust update fails with invalid provider."""
+        with pytest.raises(ValidationError):
+            UnitTrustUpdate(provider='not_a_provider')  # ty:ignore[invalid-argument-type]
 
 
 class TestPriceSchemas:
