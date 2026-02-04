@@ -134,12 +134,15 @@ class TestPortfolioAPI:
         data = response.json()
         # Total invested = only buy transactions = 10 * 100 = 1000
         assert data['total_invested'] == 1000.0
+        # Total withdrawn = sell proceeds = 3 * 110 = 330
+        assert data['total_withdrawn'] == 330.0
         # Net units = 10 - 3 = 7
         assert data['total_units'] == 7
         # Current value = 7 * 120 = 840
         assert data['current_value'] == 840.0
-        # Gain/loss = 840 - 1000 = -160
-        assert data['total_gain_loss'] == -160.0
+        # Net gain/loss = current_value + total_withdrawn - total_invested
+        # = 840 + 330 - 1000 = 170 (net profit including realized gain from sale)
+        assert data['total_gain_loss'] == 170.0
         assert data['holding_count'] == 1
 
     async def test_portfolio_performance_empty(self, client: AsyncClient):
@@ -182,8 +185,13 @@ class TestPortfolioAPI:
         metrics = data['metrics']
         assert 'daily_return' in metrics
         assert 'volatility' in metrics
-        assert 'annualized_return' in metrics
+        assert 'twr_annualized' in metrics
+        assert 'mwr_annualized' in metrics
+        assert 'net_return' in metrics
+        assert 'unrealized_roi' in metrics
         assert 'max_drawdown' in metrics
+        assert 'best_day' in metrics
+        assert 'worst_day' in metrics
 
     async def test_portfolio_history_empty(self, client: AsyncClient):
         """Test portfolio history with no prices."""
@@ -223,7 +231,13 @@ class TestPortfolioAPI:
             price_val = 100.0 + (i * 0.5)  # Gradually increasing
             prices.append(make_price(unit_trust_id=1, date=date, price=price_val))
 
-        txn = make_transaction(unit_trust_id=1, units=10.0, price_per_unit=100.0)
+        # Create transaction at start of price history
+        txn = make_transaction(
+            unit_trust_id=1,
+            units=10.0,
+            price_per_unit=100.0,
+            transaction_date=base_date,
+        )
         test_db.add_all([ut, *prices, txn])
         await test_db.commit()
 
@@ -233,8 +247,12 @@ class TestPortfolioAPI:
 
         assert data['volatility'] >= 0
         assert data['daily_return'] is not None
-        assert data['annualized_return'] is not None
+        assert data['net_return'] is not None
+        assert data['unrealized_roi'] is not None
         assert data['max_drawdown'] <= 0  # Drawdown is negative or zero
+        # TWR and MWR may or may not be None depending on calculation success
+        assert 'twr_annualized' in data
+        assert 'mwr_annualized' in data
 
 
 @pytest.mark.asyncio
