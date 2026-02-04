@@ -16,17 +16,17 @@ if TYPE_CHECKING:
 class InterestPayoutFrequency(str, Enum):
     """Interest payout frequency options."""
 
-    MONTHLY = "monthly"
-    QUARTERLY = "quarterly"
-    ANNUALLY = "annually"
-    AT_MATURITY = "at_maturity"
+    MONTHLY = 'monthly'
+    QUARTERLY = 'quarterly'
+    ANNUALLY = 'annually'
+    AT_MATURITY = 'at_maturity'
 
 
 class InterestCalculationType(str, Enum):
     """Interest calculation type options."""
 
-    SIMPLE = "simple"
-    COMPOUND = "compound"
+    SIMPLE = 'simple'
+    COMPOUND = 'compound'
 
 
 class FixedDeposit(Base):

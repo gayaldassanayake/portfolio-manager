@@ -24,10 +24,11 @@ class FixedDepositBase(BaseModel):
         interest_calculation_type: Type of interest calculation (simple or compound).
         auto_renewal: Whether the FD is set for auto-renewal.
         notes: Optional notes about the fixed deposit.
+
     """
 
-    principal_amount: float = Field(gt=0, description="Principal amount must be positive")
-    interest_rate: float = Field(ge=0, le=100, description="Interest rate between 0 and 100")
+    principal_amount: float = Field(gt=0, description='Principal amount must be positive')
+    interest_rate: float = Field(ge=0, le=100, description='Interest rate between 0 and 100')
     start_date: datetime
     maturity_date: datetime
     institution_name: str
@@ -75,6 +76,7 @@ class FixedDepositResponse(FixedDepositBase):
         id: Fixed deposit ID.
         created_at: Creation timestamp.
         updated_at: Last update timestamp.
+
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -93,6 +95,7 @@ class FixedDepositWithValue(FixedDepositResponse):
         days_to_maturity: Days remaining until maturity (negative if matured).
         is_matured: Whether the FD has reached maturity.
         term_days: Total term of the FD in days.
+
     """
 
     current_value: float
@@ -112,6 +115,7 @@ class InterestCalculationRequest(BaseModel):
         maturity_date: Maturity date.
         calculation_type: Simple or compound interest.
         payout_frequency: Interest payout frequency.
+
     """
 
     principal: float = Field(gt=0)
@@ -133,6 +137,7 @@ class InterestCalculationResponse(BaseModel):
         current_value: Current value as of today.
         days_elapsed: Days elapsed from start.
         days_remaining: Days remaining to maturity.
+
     """
 
     total_interest: float

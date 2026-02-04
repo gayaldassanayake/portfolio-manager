@@ -22,6 +22,7 @@ class NotificationSettingResponse(BaseModel):
         email_address: Email address for notifications (future).
         created_at: Creation timestamp.
         updated_at: Last update timestamp.
+
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -60,6 +61,7 @@ class NotificationLogResponse(BaseModel):
         created_at: Creation timestamp.
         displayed_at: When notification was displayed.
         dismissed_at: When notification was dismissed.
+
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -82,6 +84,7 @@ class NotificationWithFD(NotificationLogResponse):
         principal_amount: Principal amount.
         maturity_date: Maturity date.
         interest_rate: Interest rate.
+
     """
 
     institution_name: str
@@ -96,6 +99,7 @@ class NotificationDismissRequest(BaseModel):
 
     Attributes:
         notification_ids: List of notification IDs to dismiss.
+
     """
 
     notification_ids: list[int]
@@ -107,6 +111,7 @@ class NotificationGenerateResponse(BaseModel):
     Attributes:
         notifications_created: Number of new notifications created.
         message: Success message.
+
     """
 
     notifications_created: int

@@ -15,6 +15,7 @@ def calculate_simple_interest(principal: float, annual_rate: float, days: int) -
 
     Returns:
         The calculated interest amount
+
     """
     if principal <= 0 or annual_rate < 0 or days < 0:
         return 0.0
@@ -42,6 +43,7 @@ def calculate_compound_interest(
 
     Returns:
         The calculated interest amount (not including principal)
+
     """
     if principal <= 0 or annual_rate < 0 or days < 0:
         return 0.0
@@ -91,6 +93,7 @@ def calculate_current_value(
         - current_value: Principal + accrued interest
         - accrued_interest: Interest earned so far
         - days_to_maturity: Days remaining (negative if matured)
+
     """
     if as_of_date is None:
         as_of_date = datetime.now(timezone.utc)

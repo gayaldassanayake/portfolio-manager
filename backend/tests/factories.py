@@ -151,6 +151,7 @@ def make_fixed_deposit(
 
     Returns:
         FixedDeposit: Test fixed deposit instance.
+
     """
     if start_date is None:
         start_date = datetime.now(timezone.utc)
@@ -185,6 +186,7 @@ def make_notification_setting(
 
     Returns:
         NotificationSetting: Test notification setting instance.
+
     """
     return NotificationSetting(
         id=1,
@@ -210,6 +212,7 @@ def make_notification_log(
 
     Returns:
         NotificationLog: Test notification log instance.
+
     """
     return NotificationLog(
         fixed_deposit_id=fixed_deposit_id,

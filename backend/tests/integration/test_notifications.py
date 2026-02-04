@@ -60,9 +60,7 @@ class TestNotificationSettingsAPI:
 class TestNotificationGenerationAPI:
     """Test notification generation logic."""
 
-    async def test_generate_notifications_30_days(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_generate_notifications_30_days(self, client: AsyncClient, test_db: AsyncSession):
         """Test generating notifications for FDs maturing in 30 days."""
         # Create FD maturing in 30 days
         start_date = datetime.now(timezone.utc) - timedelta(days=335)
@@ -81,9 +79,7 @@ class TestNotificationGenerationAPI:
         assert data['notifications_created'] == 1
         assert 'generated' in data['message'].lower()
 
-    async def test_generate_notifications_7_days(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_generate_notifications_7_days(self, client: AsyncClient, test_db: AsyncSession):
         """Test generating notifications for FDs maturing in 7 days."""
         # Create FD maturing in 7 days
         start_date = datetime.now(timezone.utc) - timedelta(days=358)
@@ -103,9 +99,7 @@ class TestNotificationGenerationAPI:
         data = response.json()
         assert data['notifications_created'] == 1
 
-    async def test_generate_notifications_today(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_generate_notifications_today(self, client: AsyncClient, test_db: AsyncSession):
         """Test generating notifications for FDs maturing today."""
         # Create FD maturing in 1 day (within 0-1 day range)
         start_date = datetime.now(timezone.utc) - timedelta(days=364)
@@ -233,12 +227,8 @@ class TestNotificationListAPI:
         await test_db.refresh(fd)
 
         # Create pending and dismissed notifications
-        pending_notif = make_notification_log(
-            fixed_deposit_id=fd.id, status='pending'
-        )
-        dismissed_notif = make_notification_log(
-            fixed_deposit_id=fd.id, status='dismissed'
-        )
+        pending_notif = make_notification_log(fixed_deposit_id=fd.id, status='pending')
+        dismissed_notif = make_notification_log(fixed_deposit_id=fd.id, status='dismissed')
         test_db.add_all([pending_notif, dismissed_notif])
         await test_db.commit()
 
@@ -248,9 +238,7 @@ class TestNotificationListAPI:
         assert len(data) == 1
         assert data[0]['status'] == 'pending'
 
-    async def test_mark_notification_displayed(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_mark_notification_displayed(self, client: AsyncClient, test_db: AsyncSession):
         """Test marking a notification as displayed."""
         # Create FD and notification
         fd = make_fixed_deposit()
@@ -269,9 +257,7 @@ class TestNotificationListAPI:
         assert data['status'] == 'displayed'
         assert data['displayed_at'] is not None
 
-    async def test_dismiss_notifications_success(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_dismiss_notifications_success(self, client: AsyncClient, test_db: AsyncSession):
         """Test dismissing multiple notifications."""
         # Create FD and notifications
         fd = make_fixed_deposit()
@@ -301,9 +287,7 @@ class TestNotificationListAPI:
 
     async def test_dismiss_notifications_empty_list(self, client: AsyncClient):
         """Test dismissing with empty list returns 0."""
-        response = await client.post(
-            '/api/v1/notifications/dismiss', json={'notification_ids': []}
-        )
+        response = await client.post('/api/v1/notifications/dismiss', json={'notification_ids': []})
         assert response.status_code == 200
         data = response.json()
         assert data['dismissed_count'] == 0

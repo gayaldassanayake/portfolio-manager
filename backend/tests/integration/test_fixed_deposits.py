@@ -70,9 +70,7 @@ class TestFixedDepositAPI:
         assert response.status_code == 200
         assert response.json() == []
 
-    async def test_list_fixed_deposits_multiple(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_list_fixed_deposits_multiple(self, client: AsyncClient, test_db: AsyncSession):
         """Test listing multiple fixed deposits with calculated values."""
         fd1 = make_fixed_deposit(
             institution_name='Bank A', account_number='FD-001', interest_rate=8.0
@@ -178,9 +176,7 @@ class TestFixedDepositAPI:
         assert response.status_code == 404
         assert 'not found' in response.json()['detail'].lower()
 
-    async def test_update_fixed_deposit_success(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_update_fixed_deposit_success(self, client: AsyncClient, test_db: AsyncSession):
         """Test updating a fixed deposit."""
         fd = make_fixed_deposit(principal_amount=10000.0, interest_rate=8.0)
         test_db.add(fd)
@@ -220,9 +216,7 @@ class TestFixedDepositAPI:
         assert response.status_code == 400
         assert 'after start date' in response.json()['detail'].lower()
 
-    async def test_delete_fixed_deposit_success(
-        self, client: AsyncClient, test_db: AsyncSession
-    ):
+    async def test_delete_fixed_deposit_success(self, client: AsyncClient, test_db: AsyncSession):
         """Test deleting a fixed deposit."""
         fd = make_fixed_deposit()
         test_db.add(fd)

@@ -36,6 +36,7 @@ async def create_fixed_deposit(
 
     Raises:
         HTTPException: If validation fails.
+
     """
     db_fixed_deposit = FixedDeposit(**fixed_deposit.model_dump())
     db.add(db_fixed_deposit)
@@ -61,6 +62,7 @@ async def list_fixed_deposits(
 
     Returns:
         List of fixed deposits with calculated current values.
+
     """
     query = select(FixedDeposit).order_by(FixedDeposit.maturity_date.asc())
 
@@ -134,13 +136,12 @@ async def get_fixed_deposit(fixed_deposit_id: int, db: AsyncSession = Depends(ge
 
     Raises:
         HTTPException: If fixed deposit not found.
+
     """
     result = await db.execute(select(FixedDeposit).where(FixedDeposit.id == fixed_deposit_id))
     fd = result.scalar_one_or_none()
     if not fd:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Fixed deposit not found'
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Fixed deposit not found')
 
     now = datetime.now(timezone.utc)
     current_value, accrued_interest, days_to_maturity = calculate_current_value(
@@ -196,13 +197,12 @@ async def update_fixed_deposit(
 
     Raises:
         HTTPException: If fixed deposit not found or validation fails.
+
     """
     result = await db.execute(select(FixedDeposit).where(FixedDeposit.id == fixed_deposit_id))
     db_fixed_deposit = result.scalar_one_or_none()
     if not db_fixed_deposit:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Fixed deposit not found'
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Fixed deposit not found')
 
     update_data = fixed_deposit.model_dump(exclude_unset=True)
 
@@ -234,13 +234,12 @@ async def delete_fixed_deposit(fixed_deposit_id: int, db: AsyncSession = Depends
 
     Raises:
         HTTPException: If fixed deposit not found.
+
     """
     result = await db.execute(select(FixedDeposit).where(FixedDeposit.id == fixed_deposit_id))
     db_fixed_deposit = result.scalar_one_or_none()
     if not db_fixed_deposit:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Fixed deposit not found'
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Fixed deposit not found')
 
     await db.delete(db_fixed_deposit)
     await db.commit()
@@ -262,6 +261,7 @@ async def calculate_interest(request: InterestCalculationRequest):
 
     Raises:
         HTTPException: If validation fails.
+
     """
     if request.maturity_date <= request.start_date:
         raise HTTPException(

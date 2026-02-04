@@ -16,17 +16,17 @@ if TYPE_CHECKING:
 class NotificationType(str, Enum):
     """Notification type options."""
 
-    MATURITY_30_DAYS = "maturity_30_days"
-    MATURITY_7_DAYS = "maturity_7_days"
-    MATURITY_TODAY = "maturity_today"
+    MATURITY_30_DAYS = 'maturity_30_days'
+    MATURITY_7_DAYS = 'maturity_7_days'
+    MATURITY_TODAY = 'maturity_today'
 
 
 class NotificationStatus(str, Enum):
     """Notification status options."""
 
-    PENDING = "pending"
-    DISPLAYED = "displayed"
-    DISMISSED = "dismissed"
+    PENDING = 'pending'
+    DISPLAYED = 'displayed'
+    DISMISSED = 'dismissed'
 
 
 class NotificationLog(Base):

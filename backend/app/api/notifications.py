@@ -33,6 +33,7 @@ async def get_notification_settings(db: AsyncSession = Depends(get_db)):
 
     Returns:
         NotificationSettingResponse: Current notification settings.
+
     """
     result = await db.execute(select(NotificationSetting).where(NotificationSetting.id == 1))
     settings = result.scalar_one_or_none()
@@ -69,6 +70,7 @@ async def update_notification_settings(
 
     Raises:
         HTTPException: If settings not found.
+
     """
     result = await db.execute(select(NotificationSetting).where(NotificationSetting.id == 1))
     settings = result.scalar_one_or_none()
@@ -99,6 +101,7 @@ async def generate_notifications(db: AsyncSession = Depends(get_db)):
 
     Returns:
         NotificationGenerateResponse: Count of notifications created.
+
     """
     # Get notification settings
     result = await db.execute(select(NotificationSetting).where(NotificationSetting.id == 1))
@@ -119,7 +122,9 @@ async def generate_notifications(db: AsyncSession = Depends(get_db)):
     # Get all active (non-matured) FDs
     now = datetime.now(timezone.utc)
     result = await db.execute(
-        select(FixedDeposit).where(FixedDeposit.maturity_date > now).order_by(FixedDeposit.maturity_date)
+        select(FixedDeposit)
+        .where(FixedDeposit.maturity_date > now)
+        .order_by(FixedDeposit.maturity_date)
     )
     active_fds = result.scalars().all()
 
@@ -186,6 +191,7 @@ async def get_pending_notifications(db: AsyncSession = Depends(get_db)):
 
     Returns:
         List of pending notifications with associated FD information.
+
     """
     result = await db.execute(
         select(NotificationLog, FixedDeposit)
@@ -230,16 +236,13 @@ async def mark_notification_displayed(notification_id: int, db: AsyncSession = D
 
     Raises:
         HTTPException: If notification not found.
+
     """
-    result = await db.execute(
-        select(NotificationLog).where(NotificationLog.id == notification_id)
-    )
+    result = await db.execute(select(NotificationLog).where(NotificationLog.id == notification_id))
     notification = result.scalar_one_or_none()
 
     if not notification:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Notification not found'
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Notification not found')
 
     notification.status = NotificationStatus.DISPLAYED.value
     notification.displayed_at = datetime.now(timezone.utc)
@@ -261,6 +264,7 @@ async def dismiss_notifications(
 
     Returns:
         Dictionary with count of dismissed notifications.
+
     """
     if not request.notification_ids:
         return {'dismissed_count': 0, 'message': 'No notifications to dismiss'}
@@ -280,4 +284,7 @@ async def dismiss_notifications(
 
     await db.commit()
 
-    return {'dismissed_count': dismissed_count, 'message': f'Dismissed {dismissed_count} notification(s)'}
+    return {
+        'dismissed_count': dismissed_count,
+        'message': f'Dismissed {dismissed_count} notification(s)',
+    }
