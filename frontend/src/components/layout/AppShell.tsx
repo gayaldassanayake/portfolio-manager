@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Sidebar } from './Sidebar';
+import { NotificationBadge } from '../features/NotificationBadge';
 import styles from './AppShell.module.css';
 
 export function AppShell() {
@@ -8,6 +9,13 @@ export function AppShell() {
     <div className={styles.shell}>
       <Sidebar />
       <main className={styles.main}>
+        <div className={styles.header}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerActions}>
+              <NotificationBadge />
+            </div>
+          </div>
+        </div>
         <motion.div
           className={styles.content}
           initial={{ opacity: 0, y: 8 }}

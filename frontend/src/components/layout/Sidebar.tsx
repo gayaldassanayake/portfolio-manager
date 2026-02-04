@@ -32,6 +32,25 @@ const icons = {
       <path d="M14 6H17V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
+  fixedDeposits: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="5" width="16" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M2 8H18" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="11.5" r="1.5" fill="currentColor" />
+    </svg>
+  ),
+  settings: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M17 10C17 10.5 16.9 11 16.7 11.4L18 12.4L16.5 15L14.9 14.3C14.3 14.8 13.7 15.2 13 15.4V17H11V15.4C10.3 15.2 9.7 14.8 9.1 14.3L7.5 15L6 12.4L7.3 11.4C7.1 11 7 10.5 7 10C7 9.5 7.1 9 7.3 8.6L6 7.6L7.5 5L9.1 5.7C9.7 5.2 10.3 4.8 11 4.6V3H13V4.6C13.7 4.8 14.3 5.2 14.9 5.7L16.5 5L18 7.6L16.7 8.6C16.9 9 17 9.5 17 10Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
 
 const navItems = [
@@ -39,6 +58,8 @@ const navItems = [
   { label: 'Holdings', path: '/holdings', icon: icons.holdings },
   { label: 'Transactions', path: '/transactions', icon: icons.transactions },
   { label: 'Performance', path: '/performance', icon: icons.performance },
+  { label: 'Fixed Deposits', path: '/fixed-deposits', icon: icons.fixedDeposits },
+  { label: 'Settings', path: '/settings', icon: icons.settings },
 ];
 
 export function Sidebar() {

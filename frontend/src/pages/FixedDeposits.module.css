@@ -1,0 +1,165 @@
+/* ============================================
+   Fixed Deposits Page - Swiss Finance Style
+   ============================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 1400px;
+}
+
+/* Filter Tabs */
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-subtle);
+}
+
+.tabActive {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.tabCount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-full);
+}
+
+.tabActive .tabCount {
+  color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.searchInput {
+  min-width: 300px;
+}
+
+/* Table Cell Styles */
+.institutionName {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.valueCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.currentValue {
+  font-weight: var(--font-weight-semibold);
+}
+
+.accruedInterest {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+}
+
+.dateCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.daysRemaining {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Actions */
+.actionCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover {
+  color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .searchInput {
+    min-width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--space-4);
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    flex-shrink: 0;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchInput {
+    width: 100%;
+    min-width: unset;
+  }
+}
