@@ -1,5 +1,21 @@
 """Pydantic schemas package."""
 
+from app.schemas.fixed_deposit import (
+    FixedDepositCreate,
+    FixedDepositResponse,
+    FixedDepositUpdate,
+    FixedDepositWithValue,
+    InterestCalculationRequest,
+    InterestCalculationResponse,
+)
+from app.schemas.notification import (
+    NotificationDismissRequest,
+    NotificationGenerateResponse,
+    NotificationLogResponse,
+    NotificationSettingResponse,
+    NotificationSettingUpdate,
+    NotificationWithFD,
+)
 from app.schemas.portfolio import (
     PerformanceMetrics,
     PortfolioHistory,
@@ -39,4 +55,16 @@ __all__ = [
     'PortfolioPerformance',
     'CALPriceEntry',
     'CALPricesResponse',
+    'FixedDepositCreate',
+    'FixedDepositResponse',
+    'FixedDepositUpdate',
+    'FixedDepositWithValue',
+    'InterestCalculationRequest',
+    'InterestCalculationResponse',
+    'NotificationSettingResponse',
+    'NotificationSettingUpdate',
+    'NotificationLogResponse',
+    'NotificationWithFD',
+    'NotificationDismissRequest',
+    'NotificationGenerateResponse',
 ]

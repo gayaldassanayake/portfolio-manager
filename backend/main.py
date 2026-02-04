@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.fixed_deposits import router as fixed_deposits_router
+from app.api.notifications import router as notifications_router
 from app.api.portfolio import router as portfolio_router
 from app.api.prices import router as prices_router
 from app.api.transactions import router as transactions_router
@@ -49,6 +51,8 @@ app.include_router(unit_trusts_router)
 app.include_router(prices_router)
 app.include_router(transactions_router)
 app.include_router(portfolio_router)
+app.include_router(fixed_deposits_router)
+app.include_router(notifications_router)
 
 
 @app.get('/')
