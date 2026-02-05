@@ -231,3 +231,132 @@ export interface Toast {
   message: string;
   duration?: number;
 }
+
+// ============================================
+// Fixed Deposit Types
+// ============================================
+
+export type InterestPayoutFrequency = 'monthly' | 'quarterly' | 'annually' | 'at_maturity';
+export type InterestCalculationType = 'simple' | 'compound';
+
+export interface FixedDeposit {
+  id: number;
+  principal_amount: number;
+  interest_rate: number;
+  start_date: string;
+  maturity_date: string;
+  institution_name: string;
+  account_number: string;
+  interest_payout_frequency: InterestPayoutFrequency;
+  interest_calculation_type: InterestCalculationType;
+  auto_renewal: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FixedDepositWithValue extends FixedDeposit {
+  current_value: number;
+  accrued_interest: number;
+  days_to_maturity: number;
+  is_matured: boolean;
+  term_days: number;
+}
+
+export interface FixedDepositCreate {
+  principal_amount: number;
+  interest_rate: number;
+  start_date: string;
+  maturity_date: string;
+  institution_name: string;
+  account_number: string;
+  interest_payout_frequency: InterestPayoutFrequency;
+  interest_calculation_type: InterestCalculationType;
+  auto_renewal: boolean;
+  notes?: string | null;
+}
+
+export interface FixedDepositUpdate {
+  principal_amount?: number;
+  interest_rate?: number;
+  start_date?: string;
+  maturity_date?: string;
+  institution_name?: string;
+  account_number?: string;
+  interest_payout_frequency?: InterestPayoutFrequency;
+  interest_calculation_type?: InterestCalculationType;
+  auto_renewal?: boolean;
+  notes?: string | null;
+}
+
+export interface InterestCalculationRequest {
+  principal: number;
+  annual_rate: number;
+  start_date: string;
+  maturity_date: string;
+  calculation_type: InterestCalculationType;
+  payout_frequency: InterestPayoutFrequency;
+}
+
+export interface InterestCalculationResponse {
+  total_interest: number;
+  maturity_value: number;
+  term_days: number;
+  current_interest: number;
+  current_value: number;
+  days_elapsed: number;
+  days_remaining: number;
+}
+
+// ============================================
+// Notification Types
+// ============================================
+
+export type NotificationType = 'maturity_30_days' | 'maturity_7_days' | 'maturity_today';
+export type NotificationStatus = 'pending' | 'displayed' | 'dismissed';
+
+export interface NotificationSetting {
+  id: number;
+  notify_days_before_30: boolean;
+  notify_days_before_7: boolean;
+  notify_on_maturity: boolean;
+  email_notifications_enabled: boolean;
+  email_address: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationSettingUpdate {
+  notify_days_before_30?: boolean;
+  notify_days_before_7?: boolean;
+  notify_on_maturity?: boolean;
+  email_notifications_enabled?: boolean;
+  email_address?: string | null;
+}
+
+export interface NotificationLog {
+  id: number;
+  fixed_deposit_id: number;
+  notification_type: NotificationType;
+  status: NotificationStatus;
+  created_at: string;
+  displayed_at: string | null;
+  dismissed_at: string | null;
+}
+
+export interface NotificationWithFD extends NotificationLog {
+  institution_name: string;
+  account_number: string;
+  principal_amount: number;
+  maturity_date: string;
+  interest_rate: number;
+}
+
+export interface NotificationDismissRequest {
+  notification_ids: number[];
+}
+
+export interface NotificationGenerateResponse {
+  notifications_created: number;
+  message: string;
+}

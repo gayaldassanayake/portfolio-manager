@@ -18,6 +18,18 @@ import type {
   PortfolioPerformanceResponse,
   PortfolioHistoryPoint,
   PerformanceMetrics,
+  FixedDeposit,
+  FixedDepositWithValue,
+  FixedDepositCreate,
+  FixedDepositUpdate,
+  InterestCalculationRequest,
+  InterestCalculationResponse,
+  NotificationSetting,
+  NotificationSettingUpdate,
+  NotificationLog,
+  NotificationWithFD,
+  NotificationDismissRequest,
+  NotificationGenerateResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -239,19 +251,82 @@ export const api = {
 
   // Portfolio
   portfolio: {
-    getSummary: () => 
+    getSummary: () =>
       request<PortfolioSummary>('/portfolio/summary'),
-    
+
     // Returns the full performance object with summary, metrics, and history
-    getPerformance: () => 
+    getPerformance: () =>
       request<PortfolioPerformanceResponse>('/portfolio/performance'),
-    
+
     // Returns array of history points
-    getHistory: () => 
+    getHistory: () =>
       request<PortfolioHistoryPoint[]>('/portfolio/history'),
-    
-    getMetrics: () => 
+
+    getMetrics: () =>
       request<PerformanceMetrics>('/portfolio/metrics'),
+  },
+
+  // Fixed Deposits
+  fixedDeposits: {
+    list: (params?: { status?: string; institution?: string }) =>
+      request<FixedDepositWithValue[]>('/fixed-deposits', { params }),
+
+    get: (id: number) =>
+      request<FixedDepositWithValue>(`/fixed-deposits/${id}`),
+
+    create: (data: FixedDepositCreate) =>
+      request<FixedDeposit>('/fixed-deposits', {
+        method: 'POST',
+        body: data,
+      }),
+
+    update: (id: number, data: FixedDepositUpdate) =>
+      request<FixedDeposit>(`/fixed-deposits/${id}`, {
+        method: 'PUT',
+        body: data,
+      }),
+
+    delete: (id: number) =>
+      request<void>(`/fixed-deposits/${id}`, {
+        method: 'DELETE',
+      }),
+
+    calculateInterest: (data: InterestCalculationRequest) =>
+      request<InterestCalculationResponse>('/fixed-deposits/calculate-interest', {
+        method: 'POST',
+        body: data,
+      }),
+  },
+
+  // Notifications
+  notifications: {
+    getSettings: () =>
+      request<NotificationSetting>('/notifications/settings'),
+
+    updateSettings: (data: NotificationSettingUpdate) =>
+      request<NotificationSetting>('/notifications/settings', {
+        method: 'PUT',
+        body: data,
+      }),
+
+    generateNotifications: () =>
+      request<NotificationGenerateResponse>('/notifications/generate', {
+        method: 'POST',
+      }),
+
+    getPending: () =>
+      request<NotificationWithFD[]>('/notifications/pending'),
+
+    markDisplayed: (id: number) =>
+      request<NotificationLog>(`/notifications/${id}/display`, {
+        method: 'PATCH',
+      }),
+
+    dismiss: (ids: number[]) =>
+      request<{ dismissed_count: number; message: string }>('/notifications/dismiss', {
+        method: 'POST',
+        body: { notification_ids: ids } as NotificationDismissRequest,
+      }),
   },
 };
 
