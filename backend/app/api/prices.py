@@ -1,7 +1,7 @@
 """Price management API endpoints."""
 
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import AsyncGenerator
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -33,6 +33,37 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """
     async for session in get_db():
         yield session
+
+
+async def _existing_dates_in_range(
+    db: AsyncSession,
+    unit_trust_id: int,
+    start: date,
+    end: date,
+) -> set[date]:
+    """Return the set of dates already persisted for a unit trust in a range.
+
+    Used to tell providers which dates not to re-fetch, so already-saved
+    history is never requested from upstream again.
+
+    Args:
+        db: Database session.
+        unit_trust_id: Unit trust to look up.
+        start: Inclusive start of the date range.
+        end: Inclusive end of the date range.
+
+    Returns:
+        Set of dates (date, not datetime) that already have a stored price.
+
+    """
+    result = await db.execute(
+        select(Price.date).where(
+            Price.unit_trust_id == unit_trust_id,
+            Price.date >= datetime.combine(start, time.min),
+            Price.date <= datetime.combine(end, time.max),
+        )
+    )
+    return {d.date() for d in result.scalars().all()}
 
 
 @router.post('', response_model=PriceResponse, status_code=status.HTTP_201_CREATED)
@@ -271,9 +302,17 @@ async def fetch_prices_for_unit_trust(
     # Use provider_symbol if set, otherwise fall back to symbol
     lookup_symbol = unit_trust.provider_symbol or unit_trust.symbol
 
+    # Dates already persisted are passed to the provider so it can skip
+    # re-fetching them (e.g. CAL's per-date historical backfill).
+    known_dates = await _existing_dates_in_range(
+        db, unit_trust_id, start_date or date.today(), end_date or date.today()
+    )
+
     # Fetch prices from provider
     try:
-        fetched_prices = await provider.fetch_prices(lookup_symbol, start_date, end_date)
+        fetched_prices = await provider.fetch_prices(
+            lookup_symbol, start_date, end_date, known_dates=known_dates
+        )
     except ProviderError as e:
         logger.error(f'Provider error for {unit_trust.symbol}: {e}')
         raise HTTPException(
@@ -299,6 +338,8 @@ async def fetch_prices_for_unit_trust(
                 unit_trust_id=unit_trust_id,
                 date=datetime.combine(fp.date, datetime.min.time()),
                 price=fp.price,
+                buy_price=fp.buy_price,
+                sell_price=fp.sell_price,
             )
             new_prices.append(price)
             db.add(price)
@@ -378,9 +419,17 @@ async def fetch_prices_bulk(
         # Use provider_symbol if set, otherwise fall back to symbol
         lookup_symbol = unit_trust.provider_symbol or unit_trust.symbol
 
+        # Dates already persisted are passed to the provider so it can skip
+        # re-fetching them (e.g. CAL's per-date historical backfill).
+        known_dates = await _existing_dates_in_range(
+            db, unit_trust.id, start_date or date.today(), end_date or date.today()
+        )
+
         # Fetch prices from provider
         try:
-            fetched_prices = await provider.fetch_prices(lookup_symbol, start_date, end_date)
+            fetched_prices = await provider.fetch_prices(
+                lookup_symbol, start_date, end_date, known_dates=known_dates
+            )
         except ProviderError as e:
             logger.error(f'Provider error for {unit_trust.symbol}: {e}')
             errors.append(
@@ -411,6 +460,8 @@ async def fetch_prices_bulk(
                     unit_trust_id=unit_trust.id,
                     date=datetime.combine(fp.date, datetime.min.time()),
                     price=fp.price,
+                    buy_price=fp.buy_price,
+                    sell_price=fp.sell_price,
                 )
                 new_prices.append(price)
                 db.add(price)

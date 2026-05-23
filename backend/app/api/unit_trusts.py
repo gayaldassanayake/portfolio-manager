@@ -196,20 +196,27 @@ async def get_unit_trust_with_stats(unit_trust_id: int, db: AsyncSession = Depen
     avg_price = avg_price_result.scalar() or 0.0
 
     latest_price_result = await db.execute(
-        select(Price.price)
+        select(Price.price, Price.buy_price, Price.sell_price)
         .where(Price.unit_trust_id == unit_trust_id)
         .order_by(Price.date.desc())
         .limit(1)
     )
-    latest_price = latest_price_result.scalar_one_or_none()
+    latest_row = latest_price_result.first()
+    latest_price = latest_row.price if latest_row else None
+    latest_buy_price = latest_row.buy_price if latest_row else None
+    latest_sell_price = latest_row.sell_price if latest_row else None
 
     return UnitTrustWithStats(
         id=unit_trust.id,
         name=unit_trust.name,
         symbol=unit_trust.symbol,
         description=unit_trust.description,
+        provider=unit_trust.provider,
+        provider_symbol=unit_trust.provider_symbol,
         created_at=unit_trust.created_at,
         total_units=total_units,
         avg_purchase_price=avg_price,
         latest_price=latest_price,
+        latest_buy_price=latest_buy_price,
+        latest_sell_price=latest_sell_price,
     )

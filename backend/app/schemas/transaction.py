@@ -42,6 +42,8 @@ class TransactionCreate(BaseModel):
         unit_trust_id: ID of the unit trust.
         transaction_type: Type of transaction (buy or sell).
         units: Number of units (always positive).
+        price_per_unit: Price actually paid/received per unit. If omitted, the
+            stored daily price for the transaction date is used instead.
         transaction_date: Transaction date.
         notes: Optional notes for the transaction.
 
@@ -50,6 +52,9 @@ class TransactionCreate(BaseModel):
     unit_trust_id: int
     transaction_type: Literal['buy', 'sell'] = 'buy'
     units: float = Field(..., gt=0, description='Number of units (must be positive)')
+    price_per_unit: float | None = Field(
+        default=None, gt=0, description='Price per unit; defaults to the daily price if omitted'
+    )
     transaction_date: datetime
     notes: str | None = None
 

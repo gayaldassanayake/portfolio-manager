@@ -27,6 +27,11 @@ class Price(Base):
     )
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
+    # Provider buy (creation) and sell (redemption) prices. Only populated for
+    # funds that quote a spread (e.g. CAL equity funds QEF/BF); NULL otherwise,
+    # in which case callers fall back to the NAV in `price`.
+    buy_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    sell_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

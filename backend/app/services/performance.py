@@ -126,8 +126,10 @@ class PerformanceService:
         current_value = 0.0
         for unit_trust_id, net_units in holdings:
             if net_units and net_units > 0:
+                # Value holdings at what they'd fetch on exit: the sell price
+                # when the fund quotes one, otherwise the NAV.
                 latest_price_result = await db.execute(
-                    select(Price.price)
+                    select(func.coalesce(Price.sell_price, Price.price))
                     .where(Price.unit_trust_id == unit_trust_id)
                     .order_by(Price.date.desc())
                     .limit(1)
@@ -217,8 +219,10 @@ class PerformanceService:
         # Fetch all prices (including before start_date for forward-fill)
         # We need prices from the earliest transaction date
         earliest_txn_date = min(t.transaction_date for t in transactions)
+        # Value the equity curve at the sell price where quoted, else the NAV.
+        valuation_price = func.coalesce(Price.sell_price, Price.price).label('price')
         price_query = (
-            select(Price.unit_trust_id, Price.date, Price.price)
+            select(Price.unit_trust_id, Price.date, valuation_price)
             .where(Price.date >= earliest_txn_date)
             .order_by(Price.date)
         )

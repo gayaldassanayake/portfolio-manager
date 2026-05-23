@@ -74,10 +74,14 @@ class UnitTrustWithStats(UnitTrustResponse):
     Attributes:
         total_units: Total units held.
         avg_purchase_price: Average purchase price.
-        latest_price: Latest available price.
+        latest_price: Latest available NAV price.
+        latest_buy_price: Latest buy (creation) price, if the fund quotes one.
+        latest_sell_price: Latest sell (redemption) price, if the fund quotes one.
 
     """
 
     total_units: float = 0.0
     avg_purchase_price: float = 0.0
     latest_price: float | None = None
+    latest_buy_price: float | None = None
+    latest_sell_price: float | None = None
