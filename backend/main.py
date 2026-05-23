@@ -1,24 +1,37 @@
 """Main application module for Portfolio Management API."""
 
+import asyncio
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from alembic import command
 from app.api.fixed_deposits import router as fixed_deposits_router
 from app.api.notifications import router as notifications_router
 from app.api.portfolio import router as portfolio_router
 from app.api.prices import router as prices_router
 from app.api.transactions import router as transactions_router
 from app.api.unit_trusts import router as unit_trusts_router
-from app.database import Base, engine
+
+
+def _run_migrations() -> None:
+    """Upgrade the database to the latest Alembic revision.
+
+    Runs synchronously (Alembic manages its own event loop), so callers must
+    invoke it from a worker thread, never the running async loop.
+    """
+    config = Config(str(Path(__file__).parent / 'alembic.ini'))
+    command.upgrade(config, 'head')
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan events.
 
-    Creates database tables on startup.
+    Applies any pending database migrations on startup.
 
     Args:
         app: FastAPI application instance.
@@ -27,8 +40,7 @@ async def lifespan(app: FastAPI):
         None
 
     """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    await asyncio.to_thread(_run_migrations)
     yield
 
 
