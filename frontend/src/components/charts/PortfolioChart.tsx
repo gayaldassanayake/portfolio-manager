@@ -35,11 +35,15 @@ export function PortfolioChart({
   className,
 }: PortfolioChartProps) {
   const chartData = useMemo(() => {
-    return data.map((point) => ({
-      ...point,
-      formattedDate: format(parseISO(point.date), 'MMM d'),
-      fullDate: format(parseISO(point.date), 'MMM d, yyyy'),
-    }));
+    return data
+      .map((point) => ({
+        ...point,
+        // Numeric timestamp so the x-axis is a real time scale: gaps between
+        // missing dates render proportionally instead of being evenly spaced.
+        timestamp: parseISO(point.date).getTime(),
+        fullDate: format(parseISO(point.date), 'MMM d, yyyy'),
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp);
   }, [data]);
 
   const { minValue, maxValue, isPositive } = useMemo(() => {
@@ -93,7 +97,11 @@ export function PortfolioChart({
           {showAxis && (
             <>
               <XAxis
-                dataKey="formattedDate"
+                dataKey="timestamp"
+                type="number"
+                scale="time"
+                domain={['dataMin', 'dataMax']}
+                tickFormatter={(ts) => format(new Date(ts), 'MMM d')}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: 'var(--color-text-muted)', fontSize: 11 }}

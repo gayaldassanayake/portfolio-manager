@@ -16,7 +16,10 @@ export const unitTrustKeys = {
  */
 function enrichWithStats(raw: UnitTrustWithStatsRaw): UnitTrustWithStats {
   const total_cost = raw.total_units * raw.avg_purchase_price;
-  const current_value = raw.latest_price ? raw.total_units * raw.latest_price : null;
+  // Value holdings at what they'd fetch on exit: the sell price when the fund
+  // quotes one, otherwise the NAV.
+  const valuation_price = raw.latest_sell_price ?? raw.latest_price;
+  const current_value = valuation_price ? raw.total_units * valuation_price : null;
   const gain_loss = current_value !== null ? current_value - total_cost : null;
   const gain_loss_percentage = gain_loss !== null && total_cost > 0 
     ? (gain_loss / total_cost) * 100 

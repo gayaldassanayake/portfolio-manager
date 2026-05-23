@@ -5,7 +5,7 @@ import { format, formatDistanceToNow, parseISO, isValid } from 'date-fns';
 // ============================================
 
 /**
- * Format a number as currency (default: MYR)
+ * Format a number as currency (default: LKR)
  */
 export function formatCurrency(
   value: number | null | undefined,
@@ -19,7 +19,7 @@ export function formatCurrency(
   if (value === null || value === undefined) return '—';
   
   const {
-    currency = 'USD',
+    currency = 'LKR',
     minimumFractionDigits = 2,
     maximumFractionDigits = 2,
     compact = false,
