@@ -21,18 +21,16 @@ from app.services.providers.cal import CALProvider
 async def main() -> None:
     """Fetch the recent QEF series and write buy/sell onto matching rows."""
     async with AsyncSessionLocal() as db:
-        ut = (
-            await db.execute(select(UnitTrust).where(UnitTrust.symbol == 'QEF'))
-        ).scalar_one()
+        ut = (await db.execute(select(UnitTrust).where(UnitTrust.symbol == 'QEF'))).scalar_one()
 
         symbol = ut.provider_symbol or ut.symbol
         # The recent getUTPrices window is the only source of buy/sell prices.
         recent = await CALProvider()._fetch_recent_prices(symbol, symbol.upper())
-        quoted = {fp.date: fp for fp in recent if fp.buy_price is not None or fp.sell_price is not None}
+        quoted = {
+            fp.date: fp for fp in recent if fp.buy_price is not None or fp.sell_price is not None
+        }
 
-        rows = (
-            await db.execute(select(Price).where(Price.unit_trust_id == ut.id))
-        ).scalars().all()
+        rows = (await db.execute(select(Price).where(Price.unit_trust_id == ut.id))).scalars().all()
 
         updated = 0
         for row in rows:
@@ -45,8 +43,10 @@ async def main() -> None:
             updated += 1
 
         await db.commit()
-        print(f'QEF (id={ut.id}): {len(rows)} rows total, '
-              f'{len(quoted)} dates quoted upstream, {updated} rows updated.')
+        print(
+            f'QEF (id={ut.id}): {len(rows)} rows total, '
+            f'{len(quoted)} dates quoted upstream, {updated} rows updated.'
+        )
 
 
 if __name__ == '__main__':
