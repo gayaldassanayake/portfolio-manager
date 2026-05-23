@@ -64,6 +64,75 @@ class TestTransactionAPI:
         assert data['transaction_type'] == 'sell'
         assert data['notes'] == 'Profit taking'
 
+    async def test_buy_prefill_uses_buy_price(self, client: AsyncClient, test_db: AsyncSession):
+        """A buy with no explicit price fills at the buy (creation) price."""
+        ut = make_unit_trust(symbol='QEF')
+        test_date = datetime(2026, 1, 15, tzinfo=timezone.utc)
+        price = make_price(
+            unit_trust_id=1, date=test_date, price=100.0, buy_price=101.0, sell_price=99.0
+        )
+        test_db.add_all([ut, price])
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        response = await client.post(
+            '/api/v1/transactions',
+            json={
+                'unit_trust_id': ut.id,
+                'units': 10.0,
+                'transaction_date': test_date.isoformat(),
+                'transaction_type': 'buy',
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()['price_per_unit'] == 101.0
+
+    async def test_sell_prefill_uses_sell_price(self, client: AsyncClient, test_db: AsyncSession):
+        """A sell with no explicit price fills at the sell (redemption) price."""
+        ut = make_unit_trust(symbol='QEF')
+        test_date = datetime(2026, 1, 15, tzinfo=timezone.utc)
+        price = make_price(
+            unit_trust_id=1, date=test_date, price=100.0, buy_price=101.0, sell_price=99.0
+        )
+        test_db.add_all([ut, price])
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        response = await client.post(
+            '/api/v1/transactions',
+            json={
+                'unit_trust_id': ut.id,
+                'units': 10.0,
+                'transaction_date': test_date.isoformat(),
+                'transaction_type': 'sell',
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()['price_per_unit'] == 99.0
+
+    async def test_prefill_falls_back_to_nav_without_spread(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """When no buy/sell is quoted, prefill falls back to the NAV."""
+        ut = make_unit_trust(symbol='IGF')
+        test_date = datetime(2026, 1, 15, tzinfo=timezone.utc)
+        price = make_price(unit_trust_id=1, date=test_date, price=100.0)
+        test_db.add_all([ut, price])
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        response = await client.post(
+            '/api/v1/transactions',
+            json={
+                'unit_trust_id': ut.id,
+                'units': 10.0,
+                'transaction_date': test_date.isoformat(),
+                'transaction_type': 'buy',
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()['price_per_unit'] == 100.0
+
     async def test_create_transaction_unit_trust_not_found(self, client: AsyncClient):
         """Test creating transaction for non-existent unit trust fails."""
         response = await client.post(
@@ -96,6 +165,51 @@ class TestTransactionAPI:
         )
         assert response.status_code == 400
         assert 'Price not available' in response.json()['detail']
+
+    async def test_create_transaction_with_explicit_price(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """A supplied price_per_unit is stored as-is, even with no daily price."""
+        ut = make_unit_trust(symbol='TEST')
+        test_db.add(ut)
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        response = await client.post(
+            '/api/v1/transactions',
+            json={
+                'unit_trust_id': ut.id,
+                'units': 10.0,
+                'price_per_unit': 42.5,
+                'transaction_date': datetime(2026, 1, 15, tzinfo=timezone.utc).isoformat(),
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data['price_per_unit'] == 42.5
+
+    async def test_create_transaction_explicit_price_overrides_daily(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """A supplied price_per_unit takes precedence over the daily price."""
+        ut = make_unit_trust(symbol='TEST')
+        test_date = datetime(2026, 1, 15, tzinfo=timezone.utc)
+        price = make_price(unit_trust_id=1, date=test_date, price=100.0)
+        test_db.add_all([ut, price])
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        response = await client.post(
+            '/api/v1/transactions',
+            json={
+                'unit_trust_id': ut.id,
+                'units': 10.0,
+                'price_per_unit': 97.25,
+                'transaction_date': test_date.isoformat(),
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()['price_per_unit'] == 97.25
 
     async def test_list_transactions_all(self, client: AsyncClient, test_db: AsyncSession):
         """Test listing all transactions."""

@@ -200,7 +200,7 @@ class TestCALProvider:
 
     @pytest.mark.asyncio
     async def test_fetch_prices_uses_unit_price(self):
-        """Test that unit_price field is used for NAV."""
+        """unit_price is the NAV; cre_price/red_price map to buy/sell."""
         provider = CALProvider()
 
         # Mock response with all price fields
@@ -220,8 +220,176 @@ class TestCALProvider:
 
             prices = await provider.fetch_prices('QEF', start_date=date(2026, 2, 1))
 
-        # Should use unit_price, not red_price or cre_price
+        # NAV comes from unit_price; buy from cre_price, sell from red_price.
         assert prices[0].price == 25.5
+        assert prices[0].buy_price == pytest.approx(25.625)
+        assert prices[0].sell_price == pytest.approx(25.375)
+
+    @pytest.mark.asyncio
+    async def test_fetch_prices_buy_sell_absent_for_non_equity(self):
+        """Funds without a spread report None buy/sell prices."""
+        provider = CALProvider()
+
+        mock_response = {
+            'IGF': [
+                {
+                    'date': '2026-02-01',
+                    'unit_price': '39.1854000000',
+                    'red_price': None,
+                    'cre_price': None,
+                }
+            ]
+        }
+
+        with patch.object(provider, '_fetch_from_api', new_callable=AsyncMock) as mock_fetch:
+            mock_fetch.return_value = mock_response
+
+            prices = await provider.fetch_prices('IGF', start_date=date(2026, 2, 1))
+
+        assert prices[0].buy_price is None
+        assert prices[0].sell_price is None
+
+    @pytest.mark.asyncio
+    async def test_fetch_prices_backfills_below_recent_window(self):
+        """Dates older than the earliest getUTPrices date are backfilled via proxy."""
+        provider = CALProvider()
+
+        # getUTPrices recent window starts 2026-05-01.
+        recent_response = {
+            'QEF': [
+                {'date': '2026-05-01', 'unit_price': '50.00', 'red_price': None, 'cre_price': None},
+                {'date': '2026-05-02', 'unit_price': '50.10', 'red_price': None, 'cre_price': None},
+            ]
+        }
+
+        with (
+            patch.object(provider, '_fetch_from_api', new_callable=AsyncMock) as mock_recent,
+            patch.object(provider, '_fetch_historical_prices', new_callable=AsyncMock) as mock_hist,
+        ):
+            mock_recent.return_value = recent_response
+            mock_hist.return_value = {
+                date(2026, 4, 29): 49.0,
+                date(2026, 4, 30): 49.5,
+            }
+
+            prices = await provider.fetch_prices(
+                'QEF', start_date=date(2026, 4, 29), end_date=date(2026, 5, 2)
+            )
+
+        # Backfill called only with the dates below the recent window's earliest date.
+        mock_hist.assert_awaited_once()
+        _, missing = mock_hist.await_args.args
+        assert missing == [date(2026, 4, 29), date(2026, 4, 30)]
+
+        # Result merges backfill + recent, sorted oldest first.
+        assert [p.date for p in prices] == [
+            date(2026, 4, 29),
+            date(2026, 4, 30),
+            date(2026, 5, 1),
+            date(2026, 5, 2),
+        ]
+        assert prices[0].price == 49.0
+        assert prices[-1].price == pytest.approx(50.10)
+        # The proxy backfill only returns a NAV, so it carries no buy/sell.
+        assert prices[0].buy_price is None
+        assert prices[0].sell_price is None
+
+    @pytest.mark.asyncio
+    async def test_fetch_prices_skips_known_dates_in_backfill(self):
+        """known_dates are excluded from the per-date historical backfill."""
+        provider = CALProvider()
+
+        recent_response = {
+            'QEF': [
+                {'date': '2026-05-01', 'unit_price': '50.00', 'red_price': None, 'cre_price': None},
+            ]
+        }
+
+        with (
+            patch.object(provider, '_fetch_from_api', new_callable=AsyncMock) as mock_recent,
+            patch.object(provider, '_fetch_historical_prices', new_callable=AsyncMock) as mock_hist,
+        ):
+            mock_recent.return_value = recent_response
+            mock_hist.return_value = {date(2026, 4, 30): 49.5}
+
+            await provider.fetch_prices(
+                'QEF',
+                start_date=date(2026, 4, 28),
+                end_date=date(2026, 5, 1),
+                known_dates={date(2026, 4, 28), date(2026, 4, 29)},
+            )
+
+        # Apr 28/29 already persisted -> only Apr 30 is backfilled.
+        _, missing = mock_hist.await_args.args
+        assert missing == [date(2026, 4, 30)]
+
+    @pytest.mark.asyncio
+    async def test_fetch_prices_no_backfill_within_window(self):
+        """No proxy backfill when the whole range is within the getUTPrices window."""
+        provider = CALProvider()
+
+        recent_response = {
+            'IGF': [
+                {'date': '2026-05-01', 'unit_price': '39.00', 'red_price': None, 'cre_price': None},
+                {'date': '2026-05-02', 'unit_price': '39.10', 'red_price': None, 'cre_price': None},
+            ]
+        }
+
+        with (
+            patch.object(provider, '_fetch_from_api', new_callable=AsyncMock) as mock_recent,
+            patch.object(provider, '_fetch_historical_prices', new_callable=AsyncMock) as mock_hist,
+        ):
+            mock_recent.return_value = recent_response
+
+            prices = await provider.fetch_prices(
+                'IGF', start_date=date(2026, 5, 1), end_date=date(2026, 5, 2)
+            )
+
+        mock_hist.assert_not_awaited()
+        assert len(prices) == 2
+
+    @pytest.mark.asyncio
+    async def test_fetch_historical_prices_skips_failures(self):
+        """A failed/missing single date is skipped, not fatal to the backfill."""
+        provider = CALProvider()
+
+        async def fake_single(client, fund_code, odate):
+            if odate == date(2024, 6, 2):
+                raise httpx.RequestError('boom')
+            if odate == date(2024, 6, 3):
+                return None  # fund/OLD_PRICE absent
+            return 43.0
+
+        with patch.object(provider, '_fetch_historical_price', side_effect=fake_single):
+            result = await provider._fetch_historical_prices(
+                'QEF', [date(2024, 6, 1), date(2024, 6, 2), date(2024, 6, 3)]
+            )
+
+        assert result == {date(2024, 6, 1): 43.0}
+
+    @pytest.mark.asyncio
+    async def test_fetch_historical_price_extracts_old_price(self):
+        """_fetch_historical_price returns the matching fund's OLD_PRICE."""
+        provider = CALProvider()
+
+        payload = {
+            'UTMS_FUND': [
+                {'FUND': 'IGF', 'OLD_DATE': '2024-06-01', 'OLD_PRICE': '36.50'},
+                {'FUND': 'QEF', 'OLD_DATE': '2024-06-01', 'OLD_PRICE': '43.2661000000'},
+            ]
+        }
+        mock_response = Mock()
+        mock_response.json.return_value = payload
+        mock_response.raise_for_status = Mock()
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+
+        price = await provider._fetch_historical_price(mock_client, 'QEF', date(2024, 6, 1))
+
+        assert price == pytest.approx(43.2661)
+        # Proxy receives the analytics URL with the requested odate.
+        sent_url = mock_client.post.call_args.kwargs['json']['url']
+        assert "odate='2024-06-01'" in sent_url
 
     @pytest.mark.asyncio
     async def test_fetch_from_api_correct_params(self):
