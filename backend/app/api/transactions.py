@@ -45,7 +45,8 @@ async def create_transaction(transaction: TransactionCreate, db: AsyncSession = 
         TransactionResponse: Created transaction.
 
     Raises:
-        HTTPException: If unit trust not found or price not available.
+        HTTPException: If unit trust not found, or if no price_per_unit is
+            supplied and no daily price exists for the transaction date.
 
     """
     result = await db.execute(select(UnitTrust).where(UnitTrust.id == transaction.unit_trust_id))
@@ -53,24 +54,34 @@ async def create_transaction(transaction: TransactionCreate, db: AsyncSession = 
     if not unit_trust:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Unit trust not found')
 
-    result = await db.execute(
-        select(Price).where(
-            Price.unit_trust_id == transaction.unit_trust_id,
-            Price.date == transaction.transaction_date,
+    # Use the supplied price if given; otherwise fall back to the stored daily
+    # price for the transaction date. A buy fills at the creation/buy price and
+    # a sell at the redemption/sell price when the fund quotes them, falling
+    # back to the NAV otherwise.
+    price_per_unit = transaction.price_per_unit
+    if price_per_unit is None:
+        result = await db.execute(
+            select(Price).where(
+                Price.unit_trust_id == transaction.unit_trust_id,
+                Price.date == transaction.transaction_date,
+            )
         )
-    )
-    price = result.scalar_one_or_none()
-    if not price:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Price not available for the transaction date',
-        )
+        price = result.scalar_one_or_none()
+        if not price:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Price not available for the transaction date',
+            )
+        if transaction.transaction_type == 'buy':
+            price_per_unit = price.buy_price if price.buy_price is not None else price.price
+        else:  # sell
+            price_per_unit = price.sell_price if price.sell_price is not None else price.price
 
     db_transaction = Transaction(
         unit_trust_id=transaction.unit_trust_id,
         transaction_type=transaction.transaction_type,
         units=transaction.units,
-        price_per_unit=price.price,
+        price_per_unit=price_per_unit,
         transaction_date=transaction.transaction_date,
         notes=transaction.notes,
     )

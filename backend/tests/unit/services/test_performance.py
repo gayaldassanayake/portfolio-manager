@@ -1,6 +1,6 @@
 """Unit tests for performance service calculations."""
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from app.schemas.portfolio import PerformanceMetrics, PortfolioHistory
 from app.services.performance import PerformanceService
@@ -440,12 +440,23 @@ class TestMWRCalculation:
 
     def test_mwr_simple_investment(self):
         """Test MWR for a simple single investment."""
+        # _calculate_mwr treats current_value as a final cash flow dated today,
+        # so anchor the investment one year before today to keep the IRR period
+        # at ~1 year regardless of when the test runs.
+        today = date.today()
+        one_year_ago = today - timedelta(days=365)
         history = [
-            PortfolioHistory(date=datetime(2025, 1, 1, tzinfo=timezone.utc), value=1000.0),
-            PortfolioHistory(date=datetime(2026, 1, 1, tzinfo=timezone.utc), value=1100.0),
+            PortfolioHistory(
+                date=datetime.combine(one_year_ago, datetime.min.time(), tzinfo=timezone.utc),
+                value=1000.0,
+            ),
+            PortfolioHistory(
+                date=datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc),
+                value=1100.0,
+            ),
         ]
-        transaction_dates = [date(2025, 1, 1)]
-        cash_flows = [(date(2025, 1, 1), -1000.0)]  # Invested $1000
+        transaction_dates = [one_year_ago]
+        cash_flows = [(one_year_ago, -1000.0)]  # Invested $1000
 
         metrics = PerformanceService.calculate_metrics(
             history=history,

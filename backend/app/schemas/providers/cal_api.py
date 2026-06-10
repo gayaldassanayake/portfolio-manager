@@ -135,3 +135,74 @@ class CALFundRate(BaseModel):
                 return None
             return Decimal(v)
         return Decimal(str(v))
+
+
+class UTMSFundEntry(BaseModel):
+    """A single fund entry from the ut_fundsRates analytics endpoint.
+
+    This endpoint (reached via the portal's bypass-get-url proxy) returns,
+    for every fund, the latest price plus the price on a requested ``odate``.
+    Unlike getUTPrices it accepts arbitrary historical dates, so it is used to
+    backfill prices older than the getUTPrices ~90-day window.
+
+    Attributes:
+        FUND: Short code for the fund (e.g., 'IGF', 'QEF').
+        FUND_NAME: Full descriptive name of the fund.
+        LATEST_DATE: Date of the most recent price.
+        LATEST_PRICE: The most recent price available.
+        OLD_DATE: The date the OLD_PRICE applies to (echoes requested odate).
+        OLD_PRICE: The NAV price on OLD_DATE.
+        PORTFOLIO: Total fund size (AUM) in LKR.
+        RATE_PERIOD: Reporting period in days used by the source.
+
+    """
+
+    FUND: str = Field(..., description='Fund code')
+    FUND_NAME: str | None = Field(None, description='Full fund name')
+    LATEST_DATE: date_type | None = Field(None, description='Date of latest price')
+    LATEST_PRICE: Decimal | None = Field(None, description='Most recent price')
+    OLD_DATE: date_type | None = Field(None, description='Date of old price')
+    OLD_PRICE: Decimal | None = Field(None, description='NAV on OLD_DATE')
+    PORTFOLIO: Decimal | None = Field(None, description='Total AUM in LKR')
+    RATE_PERIOD: str | None = Field(None, description='Reporting period in days')
+
+    @field_validator('LATEST_PRICE', 'OLD_PRICE', 'PORTFOLIO', mode='before')
+    @classmethod
+    def parse_decimal_string(cls, v: str | Decimal | None) -> Decimal | None:
+        """Parse price/portfolio strings into Decimal (or None)."""
+        if v is None or v == '':
+            return None
+        if isinstance(v, Decimal):
+            return v
+        if isinstance(v, str):
+            if v.strip() == '' or v.strip().lower() == 'null':
+                return None
+            return Decimal(v)
+        return Decimal(str(v))
+
+
+class UTMSFundRatesResponse(BaseModel):
+    """Response from the ut_fundsRates analytics endpoint.
+
+    The endpoint returns a JSON object with a single ``UTMS_FUND`` key holding
+    an array of per-fund entries.
+
+    Example:
+        {
+            "UTMS_FUND": [
+                {
+                    "FUND": "QEF",
+                    "FUND_NAME": "Capital Alliance Quantitative Equity Fund",
+                    "LATEST_DATE": "2026-05-21",
+                    "LATEST_PRICE": "68.0908000000",
+                    "OLD_DATE": "2025-05-21",
+                    "OLD_PRICE": "53.0779000000",
+                    "PORTFOLIO": "14430008989.5112",
+                    "RATE_PERIOD": "30"
+                }
+            ]
+        }
+
+    """
+
+    UTMS_FUND: list[UTMSFundEntry] = Field(default_factory=list)

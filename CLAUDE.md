@@ -32,7 +32,7 @@ The backend follows a layered architecture:
 - All database operations use async/await with SQLAlchemy 2.0 async API
 - Dependency injection via FastAPI's `Depends()` for database sessions
 - API endpoints return flattened transaction data (includes `unit_trust_name`, `unit_trust_symbol`) to reduce frontend joins
-- Price providers are registered in the registry and selected per unit trust via `price_provider_name` field
+- Price providers are registered in the registry and selected per unit trust via the `provider` field (with optional `provider_symbol` for the provider-specific ticker)
 
 ### Frontend (React + Vite + TypeScript)
 
@@ -133,4 +133,12 @@ npm run lint
 
 ## Price Provider System
 
-Unit trusts can specify a `price_provider_name` (e.g., "yahoo", "cal") to fetch historical prices. Providers implement the `PriceProvider` abstract base class and are registered in `services/providers/registry.py`. The `/prices/fetch` endpoint supports bulk fetching for multiple funds.
+Unit trusts can specify a `provider` (e.g., "yahoo", "cal") to fetch historical prices, plus an optional `provider_symbol` for the provider-specific ticker (falls back to `symbol`). Providers implement the `PriceProvider` abstract base class and are registered in `services/providers/registry.py`. The `/prices/fetch/{unit_trust_id}` and `/prices/fetch` (bulk) endpoints fetch and persist prices.
+
+**Persistence-aware fetching:** Before fetching, the endpoints pass the set of already-stored dates as `known_dates` to the provider so already-persisted prices are not re-fetched (each date is fetched from upstream at most once).
+
+**CAL provider (hybrid):** CAL combines two upstream sources. `getUTPrices` returns a full daily series but only for a rolling ~90-day window; dates older than that are backfilled per-date via the portal proxy (`portal.cal.lk/.../bypass-get-url` → `analytics.cal.lk/.../ut_fundsRates.php?odate=...`), which is the only way to reach arbitrary historical NAVs.
+
+## Transactions and Pricing
+
+`Transaction.price_per_unit` is the price actually paid/received per unit (the cost basis) and is independent of the `prices` table, which holds the objective daily/market series used for valuation. When creating a transaction, `price_per_unit` is optional: if supplied it is stored as-is; if omitted, the stored daily price for the transaction date is used (and creation fails with 400 if no such daily price exists). The frontend Add Transaction form also offers a "Fetch price" action that fetches/persists the daily price and pre-fills the (still editable) price field.

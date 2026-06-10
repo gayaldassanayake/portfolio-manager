@@ -43,13 +43,17 @@ def make_price(
     unit_trust_id: int,
     date: datetime | None = None,
     price: float = 100.0,
+    buy_price: float | None = None,
+    sell_price: float | None = None,
 ) -> Price:
     """Create a price instance for testing.
 
     Args:
         unit_trust_id: Unit trust ID.
         date: Price date (defaults to now).
-        price: Price value.
+        price: Price value (NAV).
+        buy_price: Optional creation/buy price.
+        sell_price: Optional redemption/sell price.
 
     Returns:
         Price: Test price instance.
@@ -57,7 +61,13 @@ def make_price(
     """
     if date is None:
         date = datetime.now(timezone.utc)
-    return Price(unit_trust_id=unit_trust_id, date=date, price=price)
+    return Price(
+        unit_trust_id=unit_trust_id,
+        date=date,
+        price=price,
+        buy_price=buy_price,
+        sell_price=sell_price,
+    )
 
 
 def make_transaction(

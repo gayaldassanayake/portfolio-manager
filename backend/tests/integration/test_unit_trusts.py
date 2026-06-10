@@ -1,10 +1,12 @@
 """Integration tests for unit trust API endpoints."""
 
+from datetime import datetime, timezone
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.factories import make_unit_trust
+from tests.factories import make_price, make_unit_trust
 
 
 @pytest.mark.asyncio
@@ -142,6 +144,31 @@ class TestUnitTrustAPI:
         assert data['total_units'] == 0.0
         assert data['avg_purchase_price'] == 0.0
         assert data['latest_price'] is None
+
+    async def test_get_unit_trust_with_stats_exposes_buy_sell(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Stats expose the latest buy/sell prices alongside the NAV."""
+        ut = make_unit_trust(symbol='QEF')
+        test_db.add(ut)
+        await test_db.commit()
+        await test_db.refresh(ut)
+        price = make_price(
+            unit_trust_id=ut.id,
+            date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            price=110.0,
+            buy_price=112.0,
+            sell_price=108.0,
+        )
+        test_db.add(price)
+        await test_db.commit()
+
+        response = await client.get(f'/api/v1/unit-trusts/{ut.id}/with-stats')
+        assert response.status_code == 200
+        data = response.json()
+        assert data['latest_price'] == 110.0
+        assert data['latest_buy_price'] == 112.0
+        assert data['latest_sell_price'] == 108.0
 
     async def test_get_unit_trust_with_stats_not_found(self, client: AsyncClient):
         """Test getting stats for non-existent unit trust returns 404."""

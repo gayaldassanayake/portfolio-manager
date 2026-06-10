@@ -24,6 +24,7 @@ class YahooProvider(PriceProvider):
         symbol: str,
         start_date: date | None = None,
         end_date: date | None = None,
+        known_dates: set[date] | None = None,
     ) -> list[FetchedPrice]:
         """Fetch prices from Yahoo Finance.
 
@@ -31,6 +32,9 @@ class YahooProvider(PriceProvider):
             symbol: Yahoo Finance ticker symbol.
             start_date: Start of date range (defaults to today).
             end_date: End of date range (defaults to today).
+            known_dates: Ignored. Yahoo returns the whole range in one request,
+                so there is no per-date cost to skip; the caller de-duplicates
+                already-persisted dates on save.
 
         Returns:
             List of FetchedPrice objects.

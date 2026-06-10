@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { PageHeader } from '../components/layout';
 import {
@@ -27,6 +27,7 @@ import styles from './Holdings.module.css';
 type SortKey = 'symbol' | 'name';
 
 export function Holdings() {
+  const navigate = useNavigate();
   const { data: unitTrusts, isLoading, error } = useUnitTrusts();
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
     key: 'symbol',
@@ -119,7 +120,7 @@ export function Holdings() {
                 />
               ) : (
                 sortedData.map((fund) => (
-                  <TableRow key={fund.id}>
+                  <TableRow key={fund.id} onClick={() => navigate(`/holdings/${fund.id}`)}>
                     <TableCell mono>
                       <span className={styles.symbol}>{fund.symbol}</span>
                     </TableCell>
@@ -146,7 +147,10 @@ export function Holdings() {
                         {fund.provider && (
                           <button
                             className={styles.fetchButton}
-                            onClick={() => setSelectedFundForFetch(fund)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedFundForFetch(fund);
+                            }}
                             title="Fetch prices"
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -171,9 +175,6 @@ export function Holdings() {
                             </svg>
                           </button>
                         )}
-                        <Link to={`/holdings/${fund.id}`} className={styles.viewLink}>
-                          View Details
-                        </Link>
                       </div>
                     </TableCell>
                   </TableRow>

@@ -28,6 +28,8 @@ export interface UnitTrustWithStatsRaw {
   total_units: number;
   avg_purchase_price: number;
   latest_price: number | null;
+  latest_buy_price: number | null;
+  latest_sell_price: number | null;
 }
 
 // Extended with calculated fields for frontend use
@@ -92,6 +94,9 @@ export interface TransactionCreate {
   unit_trust_id: number;
   transaction_type: TransactionType;
   units: number;
+  // Price paid/received per unit. If omitted, the backend uses the stored
+  // daily price for the transaction date.
+  price_per_unit?: number | null;
   transaction_date: string;
   notes?: string;
 }
@@ -101,6 +106,8 @@ export interface Price {
   id: number;
   unit_trust_id: number;
   price: number;
+  buy_price: number | null;
+  sell_price: number | null;
   date: string;
   created_at: string;
 }

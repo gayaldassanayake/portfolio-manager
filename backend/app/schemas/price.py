@@ -10,12 +10,16 @@ class PriceBase(BaseModel):
 
     Attributes:
         date: Price date.
-        price: Unit price.
+        price: Unit price (NAV).
+        buy_price: Creation/buy price, if quoted by the provider (else None).
+        sell_price: Redemption/sell price, if quoted by the provider (else None).
 
     """
 
     date: datetime
     price: float
+    buy_price: float | None = None
+    sell_price: float | None = None
 
 
 class PriceCreate(PriceBase):

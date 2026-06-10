@@ -1,12 +1,57 @@
 """Integration tests for price fetch API endpoints."""
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services.providers.base import FetchedPrice
+from app.services.providers.cal import CALProvider
 from tests.factories import make_price, make_unit_trust
+
+
+@pytest.fixture(autouse=True)
+def mock_cal_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Stub CALProvider.fetch_prices so tests don't hit the live CAL API.
+
+    Returns one deterministic price per day across the inclusive
+    [start_date, end_date] range (both default to today), matching the
+    counts the assertions in this module expect.
+    """
+
+    async def _fake_fetch_prices(
+        self: CALProvider,
+        symbol: str,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        known_dates: set[date] | None = None,
+    ) -> list[FetchedPrice]:
+        today = date.today()
+        start = start_date or today
+        end = end_date or today
+        known = known_dates or set()
+
+        prices: list[FetchedPrice] = []
+        current = start
+        while current <= end:
+            # Deterministic price derived from the day-of-month, skipping any
+            # date the caller reports as already persisted.
+            if current not in known:
+                nav = 100.0 + current.day
+                # Deterministic spread around the NAV so persistence is exercised.
+                prices.append(
+                    FetchedPrice(
+                        date=current,
+                        price=nav,
+                        buy_price=nav + 0.5,
+                        sell_price=nav - 0.5,
+                    )
+                )
+            current += timedelta(days=1)
+        return prices
+
+    monkeypatch.setattr(CALProvider, 'fetch_prices', _fake_fetch_prices)
 
 
 @pytest.mark.asyncio
@@ -59,7 +104,7 @@ class TestPriceFetchSingle:
     async def test_fetch_prices_skips_existing_dates(
         self, client: AsyncClient, test_db: AsyncSession
     ):
-        """Test fetch skips dates that already have prices."""
+        """Test already-persisted dates are not re-fetched or re-saved."""
         ut = make_unit_trust(symbol='QEF', provider='cal')
         # Pre-create a price for Jan 16
         existing_price = make_price(
@@ -78,8 +123,10 @@ class TestPriceFetchSingle:
 
         assert response.status_code == 200
         data = response.json()
-        assert data['prices_fetched'] == 3  # Provider returned 3
-        assert data['prices_saved'] == 2  # Only 2 new ones saved (Jan 15, 17)
+        # Jan 16 is already persisted, so it is skipped at fetch time (passed as
+        # a known date) - only Jan 15 and 17 are fetched and saved.
+        assert data['prices_fetched'] == 2
+        assert data['prices_saved'] == 2
 
     async def test_fetch_prices_with_date_range(self, client: AsyncClient, test_db: AsyncSession):
         """Test fetch with custom date range."""
@@ -152,6 +199,26 @@ class TestPriceFetchSingle:
         assert response.status_code == 200
         prices = response.json()
         assert len(prices) == 3
+
+    async def test_fetch_persists_buy_sell_prices(self, client: AsyncClient, test_db: AsyncSession):
+        """Buy/sell prices from the provider are saved and exposed."""
+        ut = make_unit_trust(symbol='QEF', provider='cal')
+        test_db.add(ut)
+        await test_db.commit()
+        await test_db.refresh(ut)
+
+        await client.post(
+            f'/api/v1/prices/fetch/{ut.id}',
+            params={'start_date': '2026-01-15', 'end_date': '2026-01-15'},
+        )
+
+        response = await client.get(f'/api/v1/prices?unit_trust_id={ut.id}')
+        assert response.status_code == 200
+        price = response.json()[0]
+        # NAV is 100 + day(15) = 115; spread is +/- 0.5 (see stub).
+        assert price['price'] == pytest.approx(115.0)
+        assert price['buy_price'] == pytest.approx(115.5)
+        assert price['sell_price'] == pytest.approx(114.5)
 
 
 @pytest.mark.asyncio

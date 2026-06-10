@@ -49,6 +49,27 @@ class TestPortfolioAPI:
         assert data['total_units'] == 10
         assert data['holding_count'] == 1
 
+    async def test_portfolio_summary_values_at_sell_price(
+        self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Current value uses the sell price (not NAV) when the fund quotes one."""
+        ut = make_unit_trust(symbol='QEF')
+        latest = make_price(
+            unit_trust_id=1,
+            date=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            price=110.0,  # NAV
+            buy_price=112.0,
+            sell_price=108.0,  # exit value
+        )
+        txn = make_transaction(unit_trust_id=1, units=10.0, price_per_unit=100.0)
+        test_db.add_all([ut, latest, txn])
+        await test_db.commit()
+
+        response = await client.get('/api/v1/portfolio/summary')
+        assert response.status_code == 200
+        # 10 units valued at the sell price 108, not the NAV 110.
+        assert response.json()['current_value'] == 1080.0
+
     async def test_portfolio_summary_multiple_holdings(
         self, client: AsyncClient, test_db: AsyncSession
     ):
